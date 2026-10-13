@@ -7,21 +7,21 @@ import routerProvider, {
   UnsavedChangesNotifier,
   DocumentTitleHandler,
 } from "@refinedev/react-router";
-import { dataProvider } from "./providers/data";
-import { authProvider } from "./providers/auth";
-import { useNotificationProvider } from "./components/refine-ui/notification/use-notification-provider";
-import { Toaster } from "./components/refine-ui/notification/toaster";
-import { ThemeProvider } from "./components/refine-ui/theme/theme-provider";
+import { dataProvider } from "./backend/data";
+import { authProvider } from "./backend/auth";
+import { useNotificationProvider } from "./frontend/components/refine-ui/notification/use-notification-provider";
+import { Toaster } from "./frontend/components/refine-ui/notification/toaster";
+import { ThemeProvider } from "./frontend/components/refine-ui/theme/theme-provider";
 import "./App.css";
-import Dashboard from "./pages/dashboard";
-import Orders from "./pages/orders";
-import Products from "./pages/products";
-import Records from "./pages/records";
-import Settings from "./pages/settings";
-import { SignInForm } from "./components/refine-ui/form/sign-in-form";
-import { SignUpForm } from "./components/refine-ui/form/sign-up-form";
+import Dashboard from "./frontend/pages/dashboard";
+import Orders from "./frontend/pages/orders";
+import Products from "./frontend/pages/products";
+import Records from "./frontend/pages/records";
+import Settings from "./frontend/pages/settings";
+import { SignInForm } from "./frontend/components/refine-ui/form/sign-in-form";
+import { SignUpForm } from "./frontend/components/refine-ui/form/sign-up-form";
 import { Home, Package, Tag, Table } from "lucide-react";
-import { Layout } from "./components/refine-ui/layout/layout";
+import { Layout } from "./frontend/components/refine-ui/layout/layout";
 
 function App() {
   return (
