@@ -1,0 +1,93 @@
+/* ============================================================
+   Responsive breakpoints (must load last)
+   ============================================================ */
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 1000px) {
+  .dashboard-stats,
+  .order-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .orders-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .orders-toolbar input {
+    max-width: none;
+  }
+
+  .order-filters {
+    width: 100%;
+  }
+}
+
+@media (max-width: 700px) {
+  .dashboard-stats,
+  .dashboard-actions,
+  .order-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-welcome h1,
+  .orders-header h1 {
+    font-size: 1.6rem;
+  }
+
+  .orders-header {
+    flex-direction: column;
+  }
+
+  .add-order-button {
+    width: 100%;
+  }
+
+  .dashboard-activity-item {
+    align-items: flex-start;
+  }
+
+  .dashboard-activity-item time {
+    display: none;
+  }
+
+  .filter-button {
+    flex: 1;
+  }
+
+  .orders-toolbar {
+    padding: 14px;
+  }
+
+  .order-filters {
+    gap: 5px;
+  }
+
+  .wrapmate-user-bar {
+    justify-content: space-between;
+  }
+
+  /* Charts a touch shorter on phones */
+  .dashboard-chart {
+    height: 240px;
+  }
+
+  /* Settings page spacing on phones */
+  .settings-card {
+    padding: 18px;
+  }
+
+  .settings-title {
+    font-size: 1.5rem;
+  }
+
+  .settings-avatar-row {
+    flex-wrap: wrap;
+  }
