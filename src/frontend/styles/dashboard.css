@@ -1,0 +1,258 @@
+/* ============================================================
+   Dashboard — welcome, stats, quick actions, panels
+   ============================================================ */
+
+.wrapmate-dashboard {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-bottom: 32px;
+}
+
+.dashboard-welcome {
+  margin-bottom: 24px;
+}
+
+.dashboard-eyebrow {
+  margin: 0 0 6px;
+  color: var(--primary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dashboard-welcome h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.dashboard-welcome p:last-child {
+  margin: 6px 0 0;
+  color: var(--muted-foreground);
+  font-size: 0.95rem;
+}
+
+/* Dashboard Statistics */
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.dashboard-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--card-foreground);
+}
+
+.dashboard-stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--primary);
+}
+
+.dashboard-stat-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.dashboard-stat-card span,
+.dashboard-stat-card small {
+  display: block;
+}
+
+.dashboard-stat-card span {
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+}
+
+.dashboard-stat-card strong {
+  display: block;
+  margin: 2px 0;
+  font-size: 1.5rem;
+}
+
+.dashboard-stat-card small {
+  color: var(--muted-foreground);
+  font-size: 0.7rem;
+}
+
+/* Dashboard Sections */
+
+.dashboard-section {
+  margin-bottom: 32px;
+}
+
+.dashboard-section-heading,
+.dashboard-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.dashboard-section-heading h2,
+.dashboard-panel-header h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.dashboard-section-heading p,
+.dashboard-panel-header p {
+  margin: 4px 0 0;
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+}
+
+/* Quick Actions */
+
+.dashboard-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.dashboard-action-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--card-foreground);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.dashboard-action-card:hover {
+  transform: translateY(-1px);
+  border-color: var(--primary);
+  background: var(--accent);
+}
+
+.dashboard-action-card.primary {
+  border-color: var(--primary);
+}
+
+.dashboard-action-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 9px;
+  background: var(--accent);
+  color: var(--primary);
+}
+
+.dashboard-action-icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.dashboard-action-card strong,
+.dashboard-action-card span {
+  display: block;
+}
+
+.dashboard-action-card strong {
+  font-size: 0.9rem;
+}
+
+.dashboard-action-card span {
+  margin-top: 3px;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+
+.dashboard-action-arrow {
+  width: 17px;
+  height: 17px;
+  margin-left: auto;
+  color: var(--muted-foreground);
+}
+
+/* Dashboard Panels */
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.dashboard-panel {
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+/* Placeholder (coming soon) empty-state */
+
+.placeholder-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 56px 24px;
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--card-foreground);
+}
+
+.placeholder-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 4px;
+  border-radius: 14px;
+  background: var(--accent);
+  color: var(--primary);
+}
+
+.placeholder-empty-icon svg {
+  width: 26px;
+  height: 26px;
+}
+
+.placeholder-empty strong {
+  font-size: 1.05rem;
+}
+
+.placeholder-empty span {
+  max-width: 420px;
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+}
+
