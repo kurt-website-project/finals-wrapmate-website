@@ -189,12 +189,84 @@ function seedIfEmpty() {
 }
 
 /* ---------------------------------------------------------------- */
+/* Migration — backfill fields added in later versions              */
+/* ---------------------------------------------------------------- */
+
+/**
+ * Default money values for records created before the cost/price feature.
+ * Non-zero so old data doesn't show ₱0; the user can edit products anytime.
+ */
+const DEFAULT_COST = 100;
+const DEFAULT_PRICE = 180;
+
+/**
+ * Ensure every stored product has cost/price. Old products (saved before the
+ * money fields existed) get sensible non-zero defaults, then are re-saved so
+ * the upgrade only happens once. Returns the (possibly migrated) products.
+ */
+function migrateProducts(products: Product[]): Product[] {
+  let changed = false;
+  const migrated = products.map((p) => {
+    const next = { ...p };
+    if (typeof next.cost !== "number" || Number.isNaN(next.cost)) {
+      next.cost = DEFAULT_COST;
+      changed = true;
+    }
+    if (typeof next.price !== "number" || Number.isNaN(next.price)) {
+      next.price = DEFAULT_PRICE;
+      changed = true;
+    }
+    return next;
+  });
+  if (changed) writeJSON(PRODUCTS_KEY, migrated);
+  return migrated;
+}
+
+/**
+ * Ensure every stored order has unitCost/unitPrice/revenue/profit. Old orders
+ * get values from their linked product (or defaults), then revenue/profit are
+ * recomputed and re-saved once.
+ */
+function migrateOrders(orders: Order[], products: Product[]): Order[] {
+  let changed = false;
+  const migrated = orders.map((o) => {
+    const next = { ...o };
+    const needsMoney =
+      typeof next.unitPrice !== "number" ||
+      Number.isNaN(next.unitPrice) ||
+      typeof next.unitCost !== "number" ||
+      Number.isNaN(next.unitCost);
+
+    if (needsMoney) {
+      const product = products.find((p) => p.id === next.productId);
+      next.unitCost = product?.cost ?? DEFAULT_COST;
+      next.unitPrice = product?.price ?? DEFAULT_PRICE;
+      changed = true;
+    }
+
+    const expectedRevenue =
+      Math.round(next.unitPrice * next.quantity * 100) / 100;
+    const expectedProfit =
+      Math.round((next.unitPrice - next.unitCost) * next.quantity * 100) / 100;
+
+    if (next.revenue !== expectedRevenue || next.profit !== expectedProfit) {
+      next.revenue = expectedRevenue;
+      next.profit = expectedProfit;
+      changed = true;
+    }
+    return next;
+  });
+  if (changed) writeJSON(ORDERS_KEY, migrated);
+  return migrated;
+}
+
+/* ---------------------------------------------------------------- */
 /* Products API                                                      */
 /* ---------------------------------------------------------------- */
 
 export function getProducts(): Product[] {
   seedIfEmpty();
-  return readJSON<Product[]>(PRODUCTS_KEY, []);
+  return migrateProducts(readJSON<Product[]>(PRODUCTS_KEY, []));
 }
 
 export function generateProductSku(): string {
@@ -242,7 +314,8 @@ export function deleteProduct(id: string) {
 
 export function getOrders(): Order[] {
   seedIfEmpty();
-  return readJSON<Order[]>(ORDERS_KEY, []);
+  const products = migrateProducts(readJSON<Product[]>(PRODUCTS_KEY, []));
+  return migrateOrders(readJSON<Order[]>(ORDERS_KEY, []), products);
 }
 
 export function addOrder(input: {
