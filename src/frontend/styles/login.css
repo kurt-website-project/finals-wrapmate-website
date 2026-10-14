@@ -81,9 +81,9 @@
   outline: none;
 }
 
-.wrapmate-login-form input:focus,
-.orders-toolbar input:focus {
+.wrapmate-login-form input:focus {
   border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 22%, transparent);
 }
 
 .wrapmate-primary-button,
@@ -95,11 +95,21 @@
   color: var(--primary-foreground);
   font-weight: 600;
   cursor: pointer;
+  transition:
+    background 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
 }
 
 .wrapmate-primary-button:hover,
 .add-order-button:hover {
-  opacity: 0.9;
+  background: color-mix(in oklch, var(--primary) 90%, black);
+  box-shadow: 0 3px 10px color-mix(in oklch, var(--primary) 35%, transparent);
+}
+
+.wrapmate-primary-button:active,
+.add-order-button:active {
+  transform: translateY(1px);
 }
 
 .wrapmate-login-form .wrapmate-primary-button {

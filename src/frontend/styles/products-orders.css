@@ -56,10 +56,25 @@
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+  box-shadow: 0 1px 2px color-mix(in oklch, var(--primary) 30%, transparent);
+  transition:
+    background 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
 }
 
 .wm-primary-btn:hover {
-  opacity: 0.92;
+  background: color-mix(in oklch, var(--primary) 90%, black);
+  box-shadow: 0 3px 10px color-mix(in oklch, var(--primary) 35%, transparent);
+}
+
+.wm-primary-btn:active {
+  transform: translateY(1px);
+}
+
+.wm-primary-btn:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
 
 .wm-primary-btn svg {
@@ -80,10 +95,19 @@
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease;
 }
 
 .wm-secondary-btn:hover {
   background: var(--accent);
+  border-color: color-mix(in oklch, var(--primary) 40%, var(--border));
+}
+
+.wm-secondary-btn:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
 
 .wm-icon-btn {
@@ -97,11 +121,19 @@
   background: transparent;
   color: var(--muted-foreground);
   cursor: pointer;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
 }
 
 .wm-icon-btn:hover {
   background: var(--accent);
   color: var(--foreground);
+}
+
+.wm-icon-btn:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
 }
 
 .wm-icon-btn svg {
@@ -110,6 +142,7 @@
 }
 
 .wm-icon-btn.wm-danger:hover {
+  background: color-mix(in oklch, var(--destructive) 14%, transparent);
   color: var(--destructive);
 }
 
@@ -175,7 +208,9 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(3px);
+  animation: wm-overlay-in 0.18s ease;
 }
 
 .wm-modal {
@@ -184,10 +219,26 @@
   max-height: 90vh;
   overflow-y: auto;
   border: 1px solid var(--border);
-  border-radius: calc(var(--radius) + 4px);
+  border-radius: calc(var(--radius) + 6px);
   background: var(--card);
   color: var(--card-foreground);
-  box-shadow: var(--shadow);
+  box-shadow:
+    0 20px 50px -12px rgba(0, 0, 0, 0.4),
+    0 0 0 1px color-mix(in oklch, var(--border) 60%, transparent);
+  animation: wm-modal-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes wm-overlay-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes wm-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
 }
 
 .wm-modal-header {
@@ -238,6 +289,7 @@
 .wm-field > span {
   font-size: 0.8rem;
   font-weight: 600;
+  color: var(--foreground);
 }
 
 .wm-field input,
@@ -250,16 +302,44 @@
   border-radius: var(--radius);
   outline: none;
   font-size: 0.9rem;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.wm-field input::placeholder {
+  color: color-mix(in oklch, var(--muted-foreground) 75%, transparent);
 }
 
 .wm-field input:focus,
 .wm-select:focus {
   border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 22%, transparent);
 }
 
 .wm-field input:disabled {
-  opacity: 0.7;
+  opacity: 0.6;
   cursor: not-allowed;
+  background: var(--muted);
+}
+
+/* Custom dropdown arrow so selects look consistent in both themes */
+.wm-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted-foreground) 50%),
+    linear-gradient(135deg, var(--muted-foreground) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% - 2px),
+    calc(100% - 13px) calc(50% - 2px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 36px;
+}
+
+.wm-select option {
+  background: var(--card);
+  color: var(--foreground);
 }
 
 .wm-field-row {

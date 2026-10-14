@@ -143,11 +143,14 @@ export default function Analytics() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={incomePerProduct}
-                  margin={{ top: 8, right: 12, left: 0, bottom: 0 }}
+                  margin={{ top: 10, right: 12, left: 0, bottom: 0 }}
+                  barGap={6}
+                  barCategoryGap="28%"
                 >
                   <CartesianGrid
-                    strokeDasharray="3 3"
+                    strokeDasharray="4 4"
                     stroke={colors.grid}
+                    strokeOpacity={0.6}
                     vertical={false}
                   />
                   <XAxis
@@ -155,38 +158,43 @@ export default function Analytics() {
                     stroke={colors.text}
                     fontSize={12}
                     tickLine={false}
-                    axisLine={{ stroke: colors.grid }}
+                    axisLine={false}
+                    dy={6}
                   />
                   <YAxis
                     stroke={colors.text}
                     fontSize={12}
                     tickLine={false}
-                    axisLine={{ stroke: colors.grid }}
-                    label={{
-                      value: "₱",
-                      angle: -90,
-                      position: "insideLeft",
-                      fill: colors.text,
-                      fontSize: 12,
-                    }}
+                    axisLine={false}
+                    width={64}
+                    tickFormatter={(v: number) => formatPeso(v)}
                   />
                   <Tooltip
                     contentStyle={tooltipStyle}
-                    cursor={{ opacity: 0.1 }}
+                    cursor={{
+                      fill: colors.text,
+                      fillOpacity: 0.06,
+                      radius: 6,
+                    }}
                     formatter={(value: number) => formatPeso(value)}
                   />
-                  <Legend wrapperStyle={{ fontSize: "0.8rem" }} />
+                  <Legend
+                    wrapperStyle={{ fontSize: "0.8rem", paddingTop: 8 }}
+                    iconType="circle"
+                  />
                   <Bar
                     name="Revenue"
                     dataKey="revenue"
                     fill={colors.chart2}
-                    radius={[4, 4, 0, 0]}
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={48}
                   />
                   <Bar
                     name="Profit"
                     dataKey="profit"
                     fill={colors.chart1}
-                    radius={[4, 4, 0, 0]}
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={48}
                   />
                 </BarChart>
               </ResponsiveContainer>
