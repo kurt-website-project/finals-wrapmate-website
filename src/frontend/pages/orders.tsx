@@ -14,9 +14,11 @@ import {
   type ProtectionLevel,
   type Product,
 } from "@/backend/wrapmate-store";
+import { useLoading } from "@/frontend/components/loading/loading-provider";
 
 export default function Orders() {
   const { open } = useNotification();
+  const { showLoading } = useLoading();
   const [orders, setOrders] = useState<Order[]>(() => getOrders());
   const [products] = useState<Product[]>(() => getProducts());
   const [search, setSearch] = useState("");
@@ -58,6 +60,7 @@ export default function Orders() {
   const completedCount = orders.filter((o) => o.status === "Completed").length;
 
   function changeStatus(id: string, status: OrderStatus) {
+    showLoading();
     updateOrderStatus(id, status);
     setOrders(getOrders());
   }
@@ -99,6 +102,7 @@ export default function Orders() {
       return;
     }
 
+    showLoading();
     addOrder({
       customer: customer.trim(),
       product: selectedProduct,
