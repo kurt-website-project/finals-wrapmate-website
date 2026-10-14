@@ -113,6 +113,12 @@
   color: var(--destructive);
 }
 
+.wm-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 /* Product thumbnails + muted cells */
 
 .wm-product-thumb {

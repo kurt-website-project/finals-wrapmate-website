@@ -1,9 +1,10 @@
 import { useRef, useState } from "react";
 import { useNotification } from "@refinedev/core";
-import { Plus, X, Trash2, ImageIcon } from "lucide-react";
+import { Plus, X, Trash2, Pencil, ImageIcon } from "lucide-react";
 import {
   getProducts,
   addProduct,
+  updateProduct,
   deleteProduct,
   generateProductSku,
   calculateLength,
@@ -17,6 +18,9 @@ export default function Products() {
   const [products, setProducts] = useState<Product[]>(() => getProducts());
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  // null = adding a new product; a product id = editing that product.
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingSku, setEditingSku] = useState("");
 
   const filteredProducts = products.filter((p) => {
     const q = search.trim().toLowerCase();
@@ -56,6 +60,20 @@ export default function Products() {
 
   function openModal() {
     resetForm();
+    setEditingId(null);
+    setEditingSku("");
+    setModalOpen(true);
+  }
+
+  function openEdit(product: Product) {
+    setName(product.name);
+    setWidth(String(product.width));
+    setHeight(String(product.height));
+    setCost(String(product.cost));
+    setPrice(String(product.price));
+    setImage(product.image);
+    setEditingId(product.id);
+    setEditingSku(product.sku);
     setModalOpen(true);
   }
 
@@ -104,21 +122,34 @@ export default function Products() {
       return;
     }
 
-    addProduct({
+    const payload = {
       name: name.trim(),
       width: w,
       height: h,
       cost: costNum,
       price: priceNum,
       image,
-    });
-    setProducts(getProducts());
-    setModalOpen(false);
-    open?.({
-      type: "success",
-      message: "Product added",
-      description: `${name.trim()} has been saved.`,
-    });
+    };
+
+    if (editingId) {
+      updateProduct(editingId, payload);
+      setProducts(getProducts());
+      setModalOpen(false);
+      open?.({
+        type: "success",
+        message: "Product updated",
+        description: `${payload.name} has been updated.`,
+      });
+    } else {
+      addProduct(payload);
+      setProducts(getProducts());
+      setModalOpen(false);
+      open?.({
+        type: "success",
+        message: "Product added",
+        description: `${payload.name} has been saved.`,
+      });
+    }
   }
 
   function handleDelete(id: string, productName: string) {
@@ -212,14 +243,24 @@ export default function Products() {
                       </div>
                     </td>
                     <td>
-                      <button
-                        type="button"
-                        className="wm-icon-btn wm-danger"
-                        onClick={() => handleDelete(product.id, product.name)}
-                        aria-label={`Delete ${product.name}`}
-                      >
-                        <Trash2 />
-                      </button>
+                      <div className="wm-row-actions">
+                        <button
+                          type="button"
+                          className="wm-icon-btn"
+                          onClick={() => openEdit(product)}
+                          aria-label={`Edit ${product.name}`}
+                        >
+                          <Pencil />
+                        </button>
+                        <button
+                          type="button"
+                          className="wm-icon-btn wm-danger"
+                          onClick={() => handleDelete(product.id, product.name)}
+                          aria-label={`Delete ${product.name}`}
+                        >
+                          <Trash2 />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -247,7 +288,7 @@ export default function Products() {
             aria-modal="true"
           >
             <div className="wm-modal-header">
-              <h2>Add New Product</h2>
+              <h2>{editingId ? "Edit Product" : "Add New Product"}</h2>
               <button
                 type="button"
                 className="wm-icon-btn"
@@ -341,8 +382,13 @@ export default function Products() {
               )}
 
               <label className="wm-field">
-                <span>SKU (auto-generated)</span>
-                <input type="text" value={previewSku} readOnly disabled />
+                <span>{editingId ? "SKU" : "SKU (auto-generated)"}</span>
+                <input
+                  type="text"
+                  value={editingId ? editingSku : previewSku}
+                  readOnly
+                  disabled
+                />
               </label>
 
               <div className="wm-field">
@@ -396,7 +442,7 @@ export default function Products() {
 
               <div className="wm-modal-footer">
                 <button type="submit" className="wm-primary-btn">
-                  Save Product
+                  {editingId ? "Update Product" : "Save Product"}
                 </button>
               </div>
             </form>
