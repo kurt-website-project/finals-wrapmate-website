@@ -138,35 +138,75 @@
   font-weight: 700;
 }
 
-/* Order Status */
+/* Order Status — distinct colored pills per status */
 
 .status-select {
-  min-width: 105px;
-  padding: 6px 10px;
+  min-width: 115px;
+  padding: 6px 12px;
   border: 1px solid transparent;
   border-radius: 999px;
-  background: var(--muted);
-  color: var(--foreground);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   outline: none;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .status-select:focus {
-  border-color: var(--ring);
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
 }
 
+/* Pending — amber */
 .status-select.pending {
-  color: var(--primary);
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #f8d57e;
 }
 
+/* Processing — blue */
 .status-select.processing {
-  color: #ffc46b;
+  background: #dbeafe;
+  color: #1e40af;
+  border-color: #93c5fd;
 }
 
+/* Completed — green */
 .status-select.completed {
-  color: #73d99c;
+  background: #dcfce7;
+  color: #166534;
+  border-color: #86efac;
+}
+
+/* Dark mode: deeper tints so the pills stay readable */
+.dark .status-select.pending {
+  background: color-mix(in oklch, #f59e0b 22%, var(--card));
+  color: #fcd34d;
+  border-color: color-mix(in oklch, #f59e0b 45%, transparent);
+}
+
+.dark .status-select.processing {
+  background: color-mix(in oklch, #3b82f6 22%, var(--card));
+  color: #93c5fd;
+  border-color: color-mix(in oklch, #3b82f6 45%, transparent);
+}
+
+.dark .status-select.completed {
+  background: color-mix(in oklch, #22c55e 22%, var(--card));
+  color: #86efac;
+  border-color: color-mix(in oklch, #22c55e 45%, transparent);
+}
+
+/* The open option list — give each option a readable solid color.
+   (Native <option> styling is limited across browsers, but setting an
+   explicit color + background improves contrast where supported.) */
+.status-select option {
+  background: var(--card);
+  color: var(--foreground);
+  font-weight: 600;
 }
 
 .empty-orders {
