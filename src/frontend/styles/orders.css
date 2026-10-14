@@ -56,6 +56,25 @@
 .orders-toolbar input {
   max-width: 360px;
   margin: 0;
+  padding: 9px 14px;
+  background: var(--background);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  outline: none;
+  font-size: 0.85rem;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.orders-toolbar input::placeholder {
+  color: color-mix(in oklch, var(--muted-foreground) 75%, transparent);
+}
+
+.orders-toolbar input:focus {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 22%, transparent);
 }
 
 .order-filters {
@@ -85,10 +104,16 @@
   color: var(--foreground);
 }
 
+.filter-button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}
+
 .filter-button.active {
   border-color: var(--primary);
   background: var(--primary);
   color: var(--primary-foreground);
+  box-shadow: 0 1px 4px color-mix(in oklch, var(--primary) 35%, transparent);
 }
 
 /* Orders Table */
@@ -106,24 +131,31 @@
 
 .orders-table th,
 .orders-table td {
-  padding: 14px 18px;
+  padding: 13px 18px;
   border-bottom: 1px solid var(--border);
   text-align: left;
   vertical-align: middle;
 }
 
 .orders-table th {
+  position: sticky;
+  top: 0;
   background: var(--muted);
   color: var(--muted-foreground);
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .orders-table td {
   color: var(--foreground);
-  font-size: 0.82rem;
+  font-size: 0.85rem;
+}
+
+.orders-table tbody tr {
+  transition: background 0.15s ease;
 }
 
 .orders-table tbody tr:last-child td {
@@ -131,7 +163,7 @@
 }
 
 .orders-table tbody tr:hover {
-  background: var(--accent);
+  background: color-mix(in oklch, var(--accent) 55%, transparent);
 }
 
 .orders-table td strong {

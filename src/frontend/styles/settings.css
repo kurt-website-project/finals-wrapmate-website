@@ -179,6 +179,7 @@
 
 .settings-field input:focus {
   border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 22%, transparent);
 }
 
 /* Password show/hide affix */
@@ -224,17 +225,32 @@
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  border: 1px solid var(--border);
+  border: 0;
   border-radius: var(--radius);
   background: var(--primary);
   color: var(--primary-foreground);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 1px 2px color-mix(in oklch, var(--primary) 30%, transparent);
+  transition:
+    background 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
 }
 
 .settings-button:hover {
-  opacity: 0.92;
+  background: color-mix(in oklch, var(--primary) 90%, black);
+  box-shadow: 0 3px 10px color-mix(in oklch, var(--primary) 35%, transparent);
+}
+
+.settings-button:active {
+  transform: translateY(1px);
+}
+
+.settings-button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
 
 .settings-button svg {
