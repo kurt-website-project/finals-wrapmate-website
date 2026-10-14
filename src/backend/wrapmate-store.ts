@@ -303,6 +303,35 @@ export function addProduct(input: {
   return product;
 }
 
+export function updateProduct(
+  id: string,
+  input: {
+    name: string;
+    width: number;
+    height: number;
+    cost: number;
+    price: number;
+    image: string;
+  }
+): Product | null {
+  const products = getProducts();
+  const index = products.findIndex((p) => p.id === id);
+  if (index === -1) return null;
+
+  // Keep the original id and SKU; update the editable fields.
+  products[index] = {
+    ...products[index],
+    name: input.name,
+    width: input.width,
+    height: input.height,
+    cost: input.cost,
+    price: input.price,
+    image: input.image,
+  };
+  writeJSON(PRODUCTS_KEY, products);
+  return products[index];
+}
+
 export function deleteProduct(id: string) {
   const products = getProducts().filter((p) => p.id !== id);
   writeJSON(PRODUCTS_KEY, products);
