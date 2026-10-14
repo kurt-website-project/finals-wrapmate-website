@@ -23,10 +23,33 @@ import { SignInForm } from "./frontend/components/refine-ui/form/sign-in-form";
 import { SignUpForm } from "./frontend/components/refine-ui/form/sign-up-form";
 import { Home, Package, Tag, Table, BarChart3 } from "lucide-react";
 import { Layout } from "./frontend/components/refine-ui/layout/layout";
+import {
+  LoadingProvider,
+  useLoading,
+} from "./frontend/components/loading/loading-provider";
+import { LoadingIndicator } from "./frontend/components/loading/loading-indicator";
+import { useEffect } from "react";
+import { useLocation } from "react-router";
+
+/** Flashes the global loader whenever the route changes. */
+function RouteLoader() {
+  const location = useLocation();
+  const { showLoading } = useLoading();
+
+  useEffect(() => {
+    showLoading();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
+  return null;
+}
 
 function App() {
   return (
     <BrowserRouter>
+      <LoadingProvider>
+      <RouteLoader />
+      <LoadingIndicator />
       <RefineKbarProvider>
         <ThemeProvider>
           <Refine
@@ -112,6 +135,7 @@ function App() {
             </Refine>
         </ThemeProvider>
       </RefineKbarProvider>
+      </LoadingProvider>
     </BrowserRouter>
   );
 }
