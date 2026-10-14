@@ -17,7 +17,6 @@
 @import "./frontend/styles/base.css";
 
 /* Feature styles (order preserved from the original single file) */
-@import "./frontend/styles/loading.css";
 @import "./frontend/styles/login.css";
 @import "./frontend/styles/dashboard.css";
 @import "./frontend/styles/settings.css";
