@@ -7,6 +7,7 @@ import {
   addOrder,
   updateOrderStatus,
   calculateLength,
+  formatPeso,
   PROTECTION_LEVELS,
   type Order,
   type OrderStatus,
@@ -31,6 +32,12 @@ export default function Orders() {
   const selectedProduct = products.find((p) => p.id === productId);
   const liveLength = selectedProduct
     ? calculateLength(selectedProduct.width, selectedProduct.height, protection)
+    : null;
+
+  const qtyNum = Math.max(1, parseInt(quantity, 10) || 0);
+  const liveRevenue = selectedProduct ? selectedProduct.price * qtyNum : null;
+  const liveProfit = selectedProduct
+    ? (selectedProduct.price - selectedProduct.cost) * qtyNum
     : null;
 
   const filteredOrders = useMemo(() => {
@@ -295,6 +302,17 @@ export default function Orders() {
                 </label>
               </div>
 
+              {/* Auto-filled unit price (read-only) */}
+              <label className="wm-field">
+                <span>Unit Selling Price — auto</span>
+                <input
+                  type="text"
+                  readOnly
+                  disabled
+                  value={selectedProduct ? formatPeso(selectedProduct.price) : "—"}
+                />
+              </label>
+
               <div className="wm-field-row">
                 <label className="wm-field">
                   <span>Protection Level (layers)</span>
@@ -331,6 +349,24 @@ export default function Orders() {
                 </span>
                 <span className="wm-calc-formula">L = (2 × (W + H) × P) + 5</span>
               </div>
+
+              {/* Live revenue / profit */}
+              {selectedProduct && (
+                <div className="wm-calc-box">
+                  <span className="wm-calc-label">Order total ({qtyNum} pcs)</span>
+                  <div className="wm-preview-chips">
+                    <span className="wm-preview-chip">
+                      Revenue: {formatPeso(liveRevenue ?? 0)}
+                    </span>
+                    <span className="wm-preview-chip">
+                      Profit: {formatPeso(liveProfit ?? 0)}
+                    </span>
+                  </div>
+                  <span className="wm-calc-formula">
+                    Revenue = Price × Qty · Profit = (Price − Cost) × Qty
+                  </span>
+                </div>
+              )}
 
               <div className="wm-modal-footer">
                 <button type="submit" className="wm-primary-btn">

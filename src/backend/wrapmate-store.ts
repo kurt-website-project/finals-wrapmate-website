@@ -28,8 +28,15 @@ export type Product = {
   name: string;
   width: number; // W (cm)
   height: number; // H (cm)
+  cost: number; // ₱ cost to the shop per unit
+  price: number; // ₱ selling price per unit
   image: string; // data URL or empty
 };
+
+/** Profit per unit = selling price − cost. */
+export function unitProfit(product: Pick<Product, "cost" | "price">): number {
+  return Math.round((product.price - product.cost) * 100) / 100;
+}
 
 export type OrderStatus = "Pending" | "Processing" | "Completed";
 
@@ -44,6 +51,10 @@ export type Order = {
   protection: ProtectionLevel;
   length: number; // calculated L (cm)
   quantity: number;
+  unitCost: number; // ₱ snapshot of product cost at creation
+  unitPrice: number; // ₱ snapshot of product selling price at creation
+  revenue: number; // ₱ unitPrice * quantity
+  profit: number; // ₱ (unitPrice - unitCost) * quantity
   status: OrderStatus;
   date: string; // YYYY-MM-DD
 };
@@ -109,9 +120,9 @@ function seedIfEmpty() {
   // Seed a few sample BOX-SHAPED products only (square/rectangular boxes).
   // No irregular/circular items — the perimeter formula is for boxes.
   const seededProducts: Product[] = [
-    { id: "p1", sku: "WM-PROD-001", name: "Phone Box", width: 16, height: 8, image: "" },
-    { id: "p2", sku: "WM-PROD-002", name: "Earbuds Box", width: 10, height: 6, image: "" },
-    { id: "p3", sku: "WM-PROD-003", name: "Charger Box", width: 12, height: 5, image: "" },
+    { id: "p1", sku: "WM-PROD-001", name: "Phone Box", width: 16, height: 8, cost: 180, price: 320, image: "" },
+    { id: "p2", sku: "WM-PROD-002", name: "Earbuds Box", width: 10, height: 6, cost: 90, price: 180, image: "" },
+    { id: "p3", sku: "WM-PROD-003", name: "Charger Box", width: 12, height: 5, cost: 110, price: 200, image: "" },
   ];
   writeJSON(PRODUCTS_KEY, seededProducts);
   localStorage.setItem(PRODUCT_SEQ_KEY, "3");
@@ -129,8 +140,12 @@ function seedIfEmpty() {
       protection: 1.0,
       length: calculateLength(16, 8, 1.0),
       quantity: 10,
-      status: "Pending",
-      date: "2026-10-07",
+      unitCost: 180,
+      unitPrice: 320,
+      revenue: 320 * 10,
+      profit: (320 - 180) * 10,
+      status: "Completed",
+      date: "2026-10-05",
     },
     {
       id: "WM-002",
@@ -143,8 +158,12 @@ function seedIfEmpty() {
       protection: 2.0,
       length: calculateLength(10, 6, 2.0),
       quantity: 25,
-      status: "Processing",
-      date: "2026-10-07",
+      unitCost: 90,
+      unitPrice: 180,
+      revenue: 180 * 25,
+      profit: (180 - 90) * 25,
+      status: "Completed",
+      date: "2026-10-06",
     },
     {
       id: "WM-003",
@@ -157,8 +176,12 @@ function seedIfEmpty() {
       protection: 3.0,
       length: calculateLength(12, 5, 3.0),
       quantity: 15,
+      unitCost: 110,
+      unitPrice: 200,
+      revenue: 200 * 15,
+      profit: (200 - 110) * 15,
       status: "Completed",
-      date: "2026-10-06",
+      date: "2026-10-07",
     },
   ];
   writeJSON(ORDERS_KEY, seededOrders);
@@ -184,6 +207,8 @@ export function addProduct(input: {
   name: string;
   width: number;
   height: number;
+  cost: number;
+  price: number;
   image: string;
 }): Product {
   seedIfEmpty();
@@ -196,6 +221,8 @@ export function addProduct(input: {
     name: input.name,
     width: input.width,
     height: input.height,
+    cost: input.cost,
+    price: input.price,
     image: input.image,
   };
 
@@ -228,6 +255,11 @@ export function addOrder(input: {
   const orders = getOrders();
   const seq = nextSequence(ORDER_SEQ_KEY);
 
+  const revenue = Math.round(input.product.price * input.quantity * 100) / 100;
+  const profit =
+    Math.round((input.product.price - input.product.cost) * input.quantity * 100) /
+    100;
+
   const order: Order = {
     id: `WM-${pad(seq, 3)}`,
     customer: input.customer,
@@ -243,6 +275,10 @@ export function addOrder(input: {
       input.protection
     ),
     quantity: input.quantity,
+    unitCost: input.product.cost,
+    unitPrice: input.product.price,
+    revenue,
+    profit,
     status: "Pending",
     date: new Date().toISOString().slice(0, 10),
   };
@@ -262,4 +298,63 @@ export function updateOrderStatus(id: string, status: OrderStatus) {
 export function deleteOrder(id: string) {
   const orders = getOrders().filter((o) => o.id !== id);
   writeJSON(ORDERS_KEY, orders);
+}
+
+/* ---------------------------------------------------------------- */
+/* Income analytics (Completed orders only)                          */
+/* ---------------------------------------------------------------- */
+
+/** Format a number as Philippine Peso, e.g. ₱1,234.50 */
+export function formatPeso(value: number): string {
+  return `₱${value.toLocaleString("en-PH", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+export type IncomeSummary = {
+  totalRevenue: number;
+  totalProfit: number;
+  completedOrders: number;
+};
+
+/** Totals across COMPLETED orders only (realized income). */
+export function getIncomeSummary(): IncomeSummary {
+  const completed = getOrders().filter((o) => o.status === "Completed");
+  const totalRevenue = completed.reduce((s, o) => s + o.revenue, 0);
+  const totalProfit = completed.reduce((s, o) => s + o.profit, 0);
+  return {
+    totalRevenue: Math.round(totalRevenue * 100) / 100,
+    totalProfit: Math.round(totalProfit * 100) / 100,
+    completedOrders: completed.length,
+  };
+}
+
+export type ProductIncome = {
+  product: string;
+  revenue: number;
+  profit: number;
+};
+
+/** Revenue + profit grouped per product, from COMPLETED orders only. */
+export function getIncomePerProduct(): ProductIncome[] {
+  const completed = getOrders().filter((o) => o.status === "Completed");
+  const map = new Map<string, ProductIncome>();
+
+  for (const o of completed) {
+    const existing = map.get(o.productName) ?? {
+      product: o.productName,
+      revenue: 0,
+      profit: 0,
+    };
+    existing.revenue += o.revenue;
+    existing.profit += o.profit;
+    map.set(o.productName, existing);
+  }
+
+  return Array.from(map.values()).map((p) => ({
+    product: p.product,
+    revenue: Math.round(p.revenue * 100) / 100,
+    profit: Math.round(p.profit * 100) / 100,
+  }));
 }
