@@ -8,7 +8,6 @@ import {
   changePassword,
   type UserProfile,
 } from "@/backend/auth";
-import { useLoading } from "@/frontend/components/loading/loading-provider";
 
 type Identity = {
   username?: string;
@@ -23,7 +22,6 @@ function capitalize(value?: string) {
 export default function Settings() {
   const { data: identity, refetch } = useGetIdentity<Identity>();
   const { open } = useNotification();
-  const { showLoading } = useLoading();
 
   // --- Profile state (seeded from the saved profile in localStorage) ---
   const initialProfile = getProfile();
@@ -96,7 +94,6 @@ export default function Settings() {
 
     // Refresh this page's identity, and notify the rest of the app (sidebar)
     // to re-read the updated profile so the name/avatar update immediately.
-    showLoading();
     refetch?.();
     window.dispatchEvent(new Event(IDENTITY_UPDATED_EVENT));
     open?.({
@@ -128,7 +125,6 @@ export default function Settings() {
       return;
     }
 
-    showLoading();
     setCurrentPassword("");
     setNewPassword("");
     setConfirmPassword("");

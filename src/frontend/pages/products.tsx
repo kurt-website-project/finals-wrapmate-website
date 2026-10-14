@@ -12,11 +12,9 @@ import {
   PROTECTION_LEVELS,
   type Product,
 } from "@/backend/wrapmate-store";
-import { useLoading } from "@/frontend/components/loading/loading-provider";
 
 export default function Products() {
   const { open } = useNotification();
-  const { showLoading } = useLoading();
   const [products, setProducts] = useState<Product[]>(() => getProducts());
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -133,8 +131,6 @@ export default function Products() {
       image,
     };
 
-    showLoading();
-
     if (editingId) {
       updateProduct(editingId, payload);
       setProducts(getProducts());
@@ -157,7 +153,6 @@ export default function Products() {
   }
 
   function handleDelete(id: string, productName: string) {
-    showLoading();
     deleteProduct(id);
     setProducts(getProducts());
     open?.({
