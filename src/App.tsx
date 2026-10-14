@@ -17,10 +17,11 @@ import Dashboard from "./frontend/pages/dashboard";
 import Orders from "./frontend/pages/orders";
 import Products from "./frontend/pages/products";
 import Records from "./frontend/pages/records";
+import Analytics from "./frontend/pages/analytics";
 import Settings from "./frontend/pages/settings";
 import { SignInForm } from "./frontend/components/refine-ui/form/sign-in-form";
 import { SignUpForm } from "./frontend/components/refine-ui/form/sign-up-form";
-import { Home, Package, Tag, Table } from "lucide-react";
+import { Home, Package, Tag, Table, BarChart3 } from "lucide-react";
 import { Layout } from "./frontend/components/refine-ui/layout/layout";
 
 function App() {
@@ -59,6 +60,11 @@ function App() {
                   list: "/records",
                   meta: { label: "Records", icon: <Table /> },
                 },
+                {
+                  name: "analytics",
+                  list: "/analytics",
+                  meta: { label: "Analytics", icon: <BarChart3 /> },
+                },
               ]}
             >
               <Routes>
@@ -79,6 +85,7 @@ function App() {
                   <Route path="/orders" element={<Orders />} />
                   <Route path="/products" element={<Products />} />
                   <Route path="/records" element={<Records />} />
+                  <Route path="/analytics" element={<Analytics />} />
                   <Route path="/settings" element={<Settings />} />
                 </Route>
 

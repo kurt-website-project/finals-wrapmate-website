@@ -7,6 +7,7 @@ import {
   deleteProduct,
   generateProductSku,
   calculateLength,
+  formatPeso,
   PROTECTION_LEVELS,
   type Product,
 } from "@/backend/wrapmate-store";
@@ -29,18 +30,27 @@ export default function Products() {
   const [name, setName] = useState("");
   const [width, setWidth] = useState("");
   const [height, setHeight] = useState("");
+  const [cost, setCost] = useState("");
+  const [price, setPrice] = useState("");
   const [image, setImage] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const w = parseFloat(width);
   const h = parseFloat(height);
+  const costNum = parseFloat(cost);
+  const priceNum = parseFloat(price);
   const dimsValid = !Number.isNaN(w) && !Number.isNaN(h) && w > 0 && h > 0;
+  const moneyValid =
+    !Number.isNaN(costNum) && !Number.isNaN(priceNum) && costNum >= 0 && priceNum >= 0;
+  const margin = moneyValid ? priceNum - costNum : null;
   const previewSku = generateProductSku();
 
   function resetForm() {
     setName("");
     setWidth("");
     setHeight("");
+    setCost("");
+    setPrice("");
     setImage("");
   }
 
@@ -85,8 +95,23 @@ export default function Products() {
       });
       return;
     }
+    if (!moneyValid) {
+      open?.({
+        type: "error",
+        message: "Invalid price",
+        description: "Cost and selling price must be valid (0 or more).",
+      });
+      return;
+    }
 
-    addProduct({ name: name.trim(), width: w, height: h, image });
+    addProduct({
+      name: name.trim(),
+      width: w,
+      height: h,
+      cost: costNum,
+      price: priceNum,
+      image,
+    });
     setProducts(getProducts());
     setModalOpen(false);
     open?.({
@@ -141,8 +166,11 @@ export default function Products() {
                 <th>Image</th>
                 <th>SKU</th>
                 <th>Product Name</th>
-                <th>Width (W)</th>
-                <th>Height (H)</th>
+                <th>W</th>
+                <th>H</th>
+                <th>Cost</th>
+                <th>Price</th>
+                <th>Margin</th>
                 <th>Wrap Length Preview</th>
                 <th></th>
               </tr>
@@ -168,6 +196,11 @@ export default function Products() {
                     <td>{product.name}</td>
                     <td>{product.width} cm</td>
                     <td>{product.height} cm</td>
+                    <td>{formatPeso(product.cost)}</td>
+                    <td>{formatPeso(product.price)}</td>
+                    <td>
+                      <strong>{formatPeso(product.price - product.cost)}</strong>
+                    </td>
                     <td>
                       <div className="wm-preview-chips">
                         {PROTECTION_LEVELS.map((p) => (
@@ -192,7 +225,7 @@ export default function Products() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="empty-orders">
+                  <td colSpan={10} className="empty-orders">
                     {search.trim()
                       ? "No products match your search."
                       : 'No products yet. Click "Add Product" to create one.'}
@@ -266,6 +299,46 @@ export default function Products() {
                   />
                 </label>
               </div>
+
+              <div className="wm-field-row">
+                <label className="wm-field">
+                  <span>Cost (₱) — per unit</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={cost}
+                    onChange={(e) => setCost(e.target.value)}
+                    placeholder="0"
+                  />
+                </label>
+                <label className="wm-field">
+                  <span>Selling Price (₱) — per unit</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    placeholder="0"
+                  />
+                </label>
+              </div>
+
+              {margin !== null && (
+                <div className="wm-calc-box">
+                  <span className="wm-calc-label">Profit margin per unit</span>
+                  <span
+                    className="wm-calc-result"
+                    style={{ color: margin < 0 ? "var(--destructive)" : undefined }}
+                  >
+                    {formatPeso(margin)}
+                  </span>
+                  <span className="wm-calc-formula">
+                    Margin = Selling Price − Cost
+                  </span>
+                </div>
+              )}
 
               <label className="wm-field">
                 <span>SKU (auto-generated)</span>
