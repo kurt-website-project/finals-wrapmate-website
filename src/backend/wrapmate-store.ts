@@ -15,10 +15,6 @@ export type Product = {
   image: string;
 };
 
-export function unitProfit(product: Pick<Product, "cost" | "price">): number {
-  return Math.round((product.price - product.cost) * 100) / 100;
-}
-
 export type OrderStatus = "Pending" | "Processing" | "Completed";
 
 export type Order = {
