@@ -445,3 +445,24 @@ export function getWrapUsagePerProduct(): WrapUsage[] {
       p.orders > 0 ? Math.round((p.lengthSum / p.orders) * 10) / 10 : 0,
   }));
 }
+
+export type WrapSummary = {
+  /** Total bubble wrap dispensed across completed orders (cm). */
+  totalUsed: number;
+  /** Average wrap length per completed order (cm). */
+  averageLength: number;
+};
+
+/** Overall bubble wrap totals, from COMPLETED orders only. */
+export function getWrapSummary(): WrapSummary {
+  const completed = getOrders().filter((o) => o.status === "Completed");
+  const totalUsed = completed.reduce((s, o) => s + o.length * o.quantity, 0);
+  const avg =
+    completed.length > 0
+      ? completed.reduce((s, o) => s + o.length, 0) / completed.length
+      : 0;
+  return {
+    totalUsed: Math.round(totalUsed * 10) / 10,
+    averageLength: Math.round(avg * 10) / 10,
+  };
+}

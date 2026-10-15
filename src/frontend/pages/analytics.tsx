@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Coins, TrendingUp, CheckCircle2 } from "lucide-react";
+import { Coins, TrendingUp, CheckCircle2, Ruler, Gauge } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -13,6 +13,8 @@ import {
 import {
   getIncomeSummary,
   getIncomePerProduct,
+  getWrapUsagePerProduct,
+  getWrapSummary,
   formatPeso,
 } from "@/backend/wrapmate-store";
 
@@ -59,6 +61,8 @@ export default function Analytics() {
   // Real analytics data from COMPLETED orders.
   const summary = getIncomeSummary();
   const incomePerProduct = getIncomePerProduct();
+  const wrapUsage = getWrapUsagePerProduct();
+  const wrapSummary = getWrapSummary();
 
   const tooltipStyle = {
     background: "var(--card)",
@@ -113,6 +117,31 @@ export default function Analytics() {
             <span>Completed Orders</span>
             <strong>{summary.completedOrders}</strong>
             <small>Realized sales</small>
+          </div>
+        </div>
+      </section>
+
+      {/* Bubble wrap summary cards */}
+      <section className="dashboard-stats">
+        <div className="dashboard-stat-card">
+          <div className="dashboard-stat-icon">
+            <Ruler />
+          </div>
+          <div>
+            <span>Bubble Wrap Used</span>
+            <strong>{wrapSummary.totalUsed.toLocaleString()} cm</strong>
+            <small>Total dispensed</small>
+          </div>
+        </div>
+
+        <div className="dashboard-stat-card">
+          <div className="dashboard-stat-icon">
+            <Gauge />
+          </div>
+          <div>
+            <span>Avg. Wrap Length</span>
+            <strong>{wrapSummary.averageLength} cm</strong>
+            <small>Per order</small>
           </div>
         </div>
       </section>
@@ -197,6 +226,139 @@ export default function Analytics() {
         </div>
       </section>
 
+      {/* Bubble Wrap Used — total length used per product */}
+      <section className="dashboard-section">
+        <div className="dashboard-panel">
+          <div className="dashboard-panel-header">
+            <div>
+              <h2>Bubble Wrap Used</h2>
+              <p>
+                Total bubble wrap length used per product (length × quantity,
+                completed orders only).
+              </p>
+            </div>
+          </div>
+
+          <div className="dashboard-chart">
+            {wrapUsage.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={wrapUsage}
+                  margin={{ top: 10, right: 12, left: 0, bottom: 0 }}
+                  barCategoryGap="28%"
+                >
+                  <CartesianGrid
+                    strokeDasharray="4 4"
+                    stroke={colors.grid}
+                    strokeOpacity={0.6}
+                    vertical={false}
+                  />
+                  <XAxis
+                    dataKey="product"
+                    stroke={colors.text}
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    dy={6}
+                  />
+                  <YAxis
+                    stroke={colors.text}
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    width={56}
+                    tickFormatter={(v: number) => `${v} cm`}
+                  />
+                  <Tooltip
+                    contentStyle={tooltipStyle}
+                    cursor={{ fill: colors.text, fillOpacity: 0.06, radius: 6 }}
+                    formatter={(value: number) => `${value} cm`}
+                  />
+                  <Bar
+                    name="Total wrap used"
+                    dataKey="totalLength"
+                    fill={colors.chart1}
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={56}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="wm-chart-empty">
+                No completed orders yet. Mark orders as Completed in the Order
+                Queue to see bubble wrap usage.
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Avg. Wrap Length — average wrap length per order per product */}
+      <section className="dashboard-section">
+        <div className="dashboard-panel">
+          <div className="dashboard-panel-header">
+            <div>
+              <h2>Avg. Wrap Length</h2>
+              <p>
+                Average wrap length per order, by product (completed orders
+                only).
+              </p>
+            </div>
+          </div>
+
+          <div className="dashboard-chart">
+            {wrapUsage.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={wrapUsage}
+                  margin={{ top: 10, right: 12, left: 0, bottom: 0 }}
+                  barCategoryGap="28%"
+                >
+                  <CartesianGrid
+                    strokeDasharray="4 4"
+                    stroke={colors.grid}
+                    strokeOpacity={0.6}
+                    vertical={false}
+                  />
+                  <XAxis
+                    dataKey="product"
+                    stroke={colors.text}
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    dy={6}
+                  />
+                  <YAxis
+                    stroke={colors.text}
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    width={56}
+                    tickFormatter={(v: number) => `${v} cm`}
+                  />
+                  <Tooltip
+                    contentStyle={tooltipStyle}
+                    cursor={{ fill: colors.text, fillOpacity: 0.06, radius: 6 }}
+                    formatter={(value: number) => `${value} cm`}
+                  />
+                  <Bar
+                    name="Average wrap length"
+                    dataKey="averageLength"
+                    fill={colors.chart2}
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={56}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="wm-chart-empty">
+                No completed orders yet. Mark orders as Completed in the Order
+                Queue to see the average wrap length.
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
