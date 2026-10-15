@@ -1,6 +1,5 @@
 import {
   Package,
-  Recycle,
   Ruler,
   Gauge,
   Plus,
@@ -8,104 +7,11 @@ import {
   CheckCircle2,
   LoaderCircle,
 } from "lucide-react";
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
 import { getOrders } from "@/backend/wrapmate-store";
-
-/* -------------------------------------------------------------------------
- * MOCK DATA
- * -------------------------------------------------------------------------
- * Everything below is sample data rendered in the browser. When the backend
- * is ready, replace this block with calls to the API (e.g. GET /api/v1/stats
- * for the summary chart, GET /api/v1/orders for recent activity). The
- * component derives `stats` and `recentActivity` from the live orders store;
- * `plasticReduction` is illustrative sample data for the headline chart.
- * ---------------------------------------------------------------------- */
-
-// System Feature #5: plastic waste reduction (PR%) per SKU batch size.
-// PR = ((manual - automated) / manual) * 100
-// NOTE: this comparison needs historical manual-vs-automated measurements the
-// prototype does not collect yet, so it stays as illustrative sample data.
-const plasticReduction = [
-  { batch: "Small", manual: 60, wrapmate: 38 },
-  { batch: "Medium", manual: 120, wrapmate: 74 },
-  { batch: "Large", manual: 210, wrapmate: 118 },
-];
-
-/* -------------------------------------------------------------------------
- * Theme-aware chart colors
- * -------------------------------------------------------------------------
- * Recharts needs concrete color strings, but our palette lives in CSS
- * variables (--chart-1..5, etc.) that change with light/dark mode. We read
- * the computed values at runtime and re-read them whenever the theme toggles.
- * ---------------------------------------------------------------------- */
-
-type ChartColors = {
-  chart1: string;
-  chart2: string;
-  chart3: string;
-  chart4: string;
-  grid: string;
-  text: string;
-};
-
-function readChartColors(): ChartColors {
-  if (typeof window === "undefined") {
-    return {
-      chart1: "#6d4ad8",
-      chart2: "#9b7ff0",
-      chart3: "#7c5cff",
-      chart4: "#8b6df0",
-      grid: "#e5e7eb",
-      text: "#6b7280",
-    };
-  }
-
-  const styles = getComputedStyle(document.documentElement);
-  const read = (name: string, fallback: string) =>
-    styles.getPropertyValue(name).trim() || fallback;
-
-  return {
-    chart1: read("--chart-1", "#6d4ad8"),
-    chart2: read("--chart-2", "#9b7ff0"),
-    chart3: read("--chart-3", "#7c5cff"),
-    chart4: read("--chart-4", "#8b6df0"),
-    grid: read("--border", "#e5e7eb"),
-    text: read("--muted-foreground", "#6b7280"),
-  };
-}
-
-function useChartColors(): ChartColors {
-  const [colors, setColors] = useState<ChartColors>(() => readChartColors());
-
-  useEffect(() => {
-    // Re-read colors when the theme (class/style on <html>) changes.
-    const observer = new MutationObserver(() => setColors(readChartColors()));
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class", "style", "data-theme"],
-    });
-    // Also refresh once after mount in case variables resolve late.
-    setColors(readChartColors());
-    return () => observer.disconnect();
-  }, []);
-
-  return colors;
-}
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const colors = useChartColors();
 
   // --- Real data derived from the shared Orders store ---
   const orders = getOrders();
@@ -125,8 +31,6 @@ export default function Dashboard() {
 
   const stats = {
     totalOrders,
-    // Average WrapMate plastic reduction across the sample batches (PR%).
-    plasticSavedPct: 42,
     totalWrapUsedCm,
     avgWrapLengthCm,
   };
@@ -152,14 +56,6 @@ export default function Dashboard() {
             ? "processing"
             : "new",
     }));
-
-  const tooltipStyle = {
-    background: "var(--card)",
-    border: "1px solid var(--border)",
-    borderRadius: "8px",
-    color: "var(--card-foreground)",
-    fontSize: "0.8rem",
-  };
 
   return (
     <div className="wrapmate-dashboard">
@@ -187,17 +83,6 @@ export default function Dashboard() {
 
         <div className="dashboard-stat-card">
           <div className="dashboard-stat-icon">
-            <Recycle />
-          </div>
-          <div>
-            <span>Plastic Saved</span>
-            <strong>{stats.plasticSavedPct}%</strong>
-            <small>vs. manual wrapping</small>
-          </div>
-        </div>
-
-        <div className="dashboard-stat-card">
-          <div className="dashboard-stat-icon">
             <Ruler />
           </div>
           <div>
@@ -215,70 +100,6 @@ export default function Dashboard() {
             <span>Avg. Wrap Length</span>
             <strong>{stats.avgWrapLengthCm} cm</strong>
             <small>Per order</small>
-          </div>
-        </div>
-      </section>
-
-      {/* Plastic Waste Reduction — headline chart (System Feature #5) */}
-      <section className="dashboard-section">
-        <div className="dashboard-panel">
-          <div className="dashboard-panel-header">
-            <div>
-              <h2>Plastic Waste Reduction</h2>
-              <p>
-                Bubble wrap used per batch: manual wrapping vs. WrapMate-assisted
-                cutting (lower is better).
-              </p>
-            </div>
-          </div>
-
-          <div className="dashboard-chart">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={plasticReduction}
-                margin={{ top: 8, right: 12, left: -8, bottom: 0 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke={colors.grid}
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="batch"
-                  stroke={colors.text}
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={{ stroke: colors.grid }}
-                />
-                <YAxis
-                  stroke={colors.text}
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={{ stroke: colors.grid }}
-                  label={{
-                    value: "cm",
-                    angle: -90,
-                    position: "insideLeft",
-                    fill: colors.text,
-                    fontSize: 12,
-                  }}
-                />
-                <Tooltip contentStyle={tooltipStyle} cursor={{ opacity: 0.1 }} />
-                <Legend wrapperStyle={{ fontSize: "0.8rem" }} />
-                <Bar
-                  name="Manual"
-                  dataKey="manual"
-                  fill={colors.chart2}
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar
-                  name="WrapMate"
-                  dataKey="wrapmate"
-                  fill={colors.chart1}
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
           </div>
         </div>
       </section>

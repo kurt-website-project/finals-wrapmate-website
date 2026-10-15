@@ -109,83 +109,23 @@ function pad(num: number, size: number): string {
 }
 
 /* ---------------------------------------------------------------- */
-/* Seed data (first run)                                             */
+/* First-run init                                                    */
 /* ---------------------------------------------------------------- */
 
+/**
+ * The app starts EMPTY — no sample/seed products or orders. On first run we
+ * just initialize the stores to empty arrays so the rest of the code can read
+ * them safely. Users create their own products and orders.
+ */
 function seedIfEmpty() {
-  if (localStorage.getItem(PRODUCTS_KEY) && localStorage.getItem(ORDERS_KEY)) {
-    return;
+  if (!localStorage.getItem(PRODUCTS_KEY)) {
+    writeJSON(PRODUCTS_KEY, []);
+    localStorage.setItem(PRODUCT_SEQ_KEY, "0");
   }
-
-  // Seed a few sample BOX-SHAPED products only (square/rectangular boxes).
-  // No irregular/circular items — the perimeter formula is for boxes.
-  const seededProducts: Product[] = [
-    { id: "p1", sku: "WM-PROD-001", name: "Phone Box", width: 16, height: 8, cost: 180, price: 320, image: "" },
-    { id: "p2", sku: "WM-PROD-002", name: "Earbuds Box", width: 10, height: 6, cost: 90, price: 180, image: "" },
-    { id: "p3", sku: "WM-PROD-003", name: "Charger Box", width: 12, height: 5, cost: 110, price: 200, image: "" },
-  ];
-  writeJSON(PRODUCTS_KEY, seededProducts);
-  localStorage.setItem(PRODUCT_SEQ_KEY, "3");
-
-  // Seed matching sample orders with computed lengths.
-  const seededOrders: Order[] = [
-    {
-      id: "WM-001",
-      customer: "Sample Customer 1",
-      productId: "p1",
-      productName: "Phone Box",
-      sku: "WM-PROD-001",
-      width: 16,
-      height: 8,
-      protection: 1.0,
-      length: calculateLength(16, 8, 1.0),
-      quantity: 10,
-      unitCost: 180,
-      unitPrice: 320,
-      revenue: 320 * 10,
-      profit: (320 - 180) * 10,
-      status: "Completed",
-      date: "2026-10-05",
-    },
-    {
-      id: "WM-002",
-      customer: "Sample Customer 2",
-      productId: "p2",
-      productName: "Earbuds Box",
-      sku: "WM-PROD-002",
-      width: 10,
-      height: 6,
-      protection: 2.0,
-      length: calculateLength(10, 6, 2.0),
-      quantity: 25,
-      unitCost: 90,
-      unitPrice: 180,
-      revenue: 180 * 25,
-      profit: (180 - 90) * 25,
-      status: "Completed",
-      date: "2026-10-06",
-    },
-    {
-      id: "WM-003",
-      customer: "Sample Customer 3",
-      productId: "p3",
-      productName: "Charger Box",
-      sku: "WM-PROD-003",
-      width: 12,
-      height: 5,
-      protection: 3.0,
-      length: calculateLength(12, 5, 3.0),
-      quantity: 15,
-      unitCost: 110,
-      unitPrice: 200,
-      revenue: 200 * 15,
-      profit: (200 - 110) * 15,
-      status: "Completed",
-      date: "2026-10-07",
-    },
-  ];
-  writeJSON(ORDERS_KEY, seededOrders);
-  localStorage.setItem(ORDER_SEQ_KEY, "3");
+  if (!localStorage.getItem(ORDERS_KEY)) {
+    writeJSON(ORDERS_KEY, []);
+    localStorage.setItem(ORDER_SEQ_KEY, "0");
+  }
 }
 
 /* ---------------------------------------------------------------- */
@@ -458,5 +398,50 @@ export function getIncomePerProduct(): ProductIncome[] {
     product: p.product,
     revenue: Math.round(p.revenue * 100) / 100,
     profit: Math.round(p.profit * 100) / 100,
+  }));
+}
+
+/* ---------------------------------------------------------------- */
+/* Bubble wrap usage analytics (Completed orders only)               */
+/* ---------------------------------------------------------------- */
+
+export type WrapUsage = {
+  product: string;
+  /** Total bubble wrap length used = sum of (L × quantity) across orders. */
+  totalLength: number;
+  /** Average wrap length per order (mean of L) for this product. */
+  averageLength: number;
+};
+
+/**
+ * Bubble wrap usage grouped per product, from COMPLETED orders only.
+ * - totalLength: total wrap dispensed (L × qty, summed)
+ * - averageLength: mean target length (L) per order
+ */
+export function getWrapUsagePerProduct(): WrapUsage[] {
+  const completed = getOrders().filter((o) => o.status === "Completed");
+  const map = new Map<
+    string,
+    { product: string; total: number; lengthSum: number; orders: number }
+  >();
+
+  for (const o of completed) {
+    const existing = map.get(o.productName) ?? {
+      product: o.productName,
+      total: 0,
+      lengthSum: 0,
+      orders: 0,
+    };
+    existing.total += o.length * o.quantity;
+    existing.lengthSum += o.length;
+    existing.orders += 1;
+    map.set(o.productName, existing);
+  }
+
+  return Array.from(map.values()).map((p) => ({
+    product: p.product,
+    totalLength: Math.round(p.total * 10) / 10,
+    averageLength:
+      p.orders > 0 ? Math.round((p.lengthSum / p.orders) * 10) / 10 : 0,
   }));
 }
