@@ -29,7 +29,7 @@ import { ThemeToggle } from "@/frontend/components/refine-ui/theme/theme-toggle"
 import { Button } from "@/frontend/components/ui/button";
 import { ChevronRight, ListIcon, Settings, LogOut } from "lucide-react";
 import { cn } from "@/frontend/lib/utils";
-import { IDENTITY_UPDATED_EVENT } from "@/backend/wrapmate-store";
+import { IDENTITY_UPDATED_EVENT } from "@/backend/api";
 
 export function Sidebar() {
   const { menuItems, selectedKey } = useMenu();

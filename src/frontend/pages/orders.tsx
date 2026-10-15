@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNotification } from "@refinedev/core";
 import { Plus, X, Trash2 } from "lucide-react";
 import {
@@ -18,12 +18,28 @@ import {
 
 export default function Orders() {
   const { open } = useNotification();
-  const [orders, setOrders] = useState<Order[]>(() => getOrders());
-  const [products] = useState<Product[]>(() => getProducts());
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"All" | OrderStatus>("All");
   const [modalOpen, setModalOpen] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  async function reloadOrders() {
+    try {
+      setOrders(await getOrders());
+    } catch {
+      setOrders([]);
+    }
+  }
+
+  useEffect(() => {
+    reloadOrders();
+    getProducts()
+      .then(setProducts)
+      .catch(() => setProducts([]));
+  }, []);
 
   const [customer, setCustomer] = useState("");
   const [productId, setProductId] = useState("");
@@ -58,22 +74,38 @@ export default function Orders() {
   const processingCount = orders.filter((o) => o.status === "Processing").length;
   const completedCount = orders.filter((o) => o.status === "Completed").length;
 
-  function changeStatus(id: string, status: OrderStatus) {
-    updateOrderStatus(id, status);
-    setOrders(getOrders());
+  async function changeStatus(rowId: string, status: OrderStatus) {
+    try {
+      await updateOrderStatus(rowId, status);
+      await reloadOrders();
+    } catch (err) {
+      open?.({
+        type: "error",
+        message: "Update failed",
+        description: (err as Error).message,
+      });
+    }
   }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     if (!orderToDelete) return;
     const removed = orderToDelete;
-    deleteOrder(removed.id);
-    setOrders(getOrders());
     setOrderToDelete(null);
-    open?.({
-      type: "success",
-      message: "Order deleted",
-      description: `Order ${removed.id} has been removed.`,
-    });
+    try {
+      await deleteOrder(removed.rowId);
+      await reloadOrders();
+      open?.({
+        type: "success",
+        message: "Order deleted",
+        description: `Order ${removed.id} has been removed.`,
+      });
+    } catch (err) {
+      open?.({
+        type: "error",
+        message: "Delete failed",
+        description: (err as Error).message,
+      });
+    }
   }
 
   function resetForm() {
@@ -96,7 +128,7 @@ export default function Orders() {
     setModalOpen(true);
   }
 
-  function handleSave(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSave(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!customer.trim()) {
@@ -113,19 +145,30 @@ export default function Orders() {
       return;
     }
 
-    addOrder({
-      customer: customer.trim(),
-      product: selectedProduct,
-      protection,
-      quantity: qty,
-    });
-    setOrders(getOrders());
-    setModalOpen(false);
-    open?.({
-      type: "success",
-      message: "Order added",
-      description: `New order for ${selectedProduct.name} created.`,
-    });
+    setSaving(true);
+    try {
+      await addOrder({
+        customer: customer.trim(),
+        productId: selectedProduct.id,
+        protection,
+        quantity: qty,
+      });
+      await reloadOrders();
+      setModalOpen(false);
+      open?.({
+        type: "success",
+        message: "Order added",
+        description: `New order for ${selectedProduct.name} created.`,
+      });
+    } catch (err) {
+      open?.({
+        type: "error",
+        message: "Save failed",
+        description: (err as Error).message,
+      });
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -223,7 +266,7 @@ export default function Orders() {
                         className={`status-select ${order.status.toLowerCase()}`}
                         value={order.status}
                         onChange={(event) =>
-                          changeStatus(order.id, event.target.value as OrderStatus)
+                          changeStatus(order.rowId, event.target.value as OrderStatus)
                         }
                       >
                         <option value="Pending">Pending</option>
@@ -389,8 +432,8 @@ export default function Orders() {
               )}
 
               <div className="wm-modal-footer">
-                <button type="submit" className="wm-primary-btn">
-                  Save Order
+                <button type="submit" className="wm-primary-btn" disabled={saving}>
+                  {saving ? "Saving…" : "Save Order"}
                 </button>
               </div>
             </form>

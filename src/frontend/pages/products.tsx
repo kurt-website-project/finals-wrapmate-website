@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNotification } from "@refinedev/core";
 import { Plus, X, Trash2, Pencil, ImageIcon } from "lucide-react";
 import {
@@ -6,20 +6,33 @@ import {
   addProduct,
   updateProduct,
   deleteProduct,
-  generateProductSku,
   calculateLength,
   formatPeso,
   PROTECTION_LEVELS,
   type Product,
 } from "@/backend/wrapmate-store";
+import { uploadFile } from "@/backend/api";
 
 export default function Products() {
   const { open } = useNotification();
-  const [products, setProducts] = useState<Product[]>(() => getProducts());
+  const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingSku, setEditingSku] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function reload() {
+    try {
+      setProducts(await getProducts());
+    } catch {
+      setProducts([]);
+    }
+  }
+
+  useEffect(() => {
+    reload();
+  }, []);
 
   const filteredProducts = products.filter((p) => {
     const q = search.trim().toLowerCase();
@@ -45,7 +58,6 @@ export default function Products() {
   const moneyValid =
     !Number.isNaN(costNum) && !Number.isNaN(priceNum) && costNum >= 0 && priceNum >= 0;
   const margin = moneyValid ? priceNum - costNum : null;
-  const previewSku = generateProductSku();
 
   function resetForm() {
     setName("");
@@ -79,7 +91,7 @@ export default function Products() {
     setModalOpen(false);
   }
 
-  function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
+  async function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
@@ -90,13 +102,20 @@ export default function Products() {
       });
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => setImage(String(reader.result ?? ""));
-    reader.readAsDataURL(file);
     event.target.value = "";
+    try {
+      const { url } = await uploadFile(file);
+      setImage(url);
+    } catch (err) {
+      open?.({
+        type: "error",
+        message: "Upload failed",
+        description: (err as Error).message,
+      });
+    }
   }
 
-  function handleSave(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSave(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!name.trim()) {
@@ -129,35 +148,52 @@ export default function Products() {
       image,
     };
 
-    if (editingId) {
-      updateProduct(editingId, payload);
-      setProducts(getProducts());
+    setSaving(true);
+    try {
+      if (editingId) {
+        await updateProduct(editingId, payload);
+        open?.({
+          type: "success",
+          message: "Product updated",
+          description: `${payload.name} has been updated.`,
+        });
+      } else {
+        await addProduct(payload);
+        open?.({
+          type: "success",
+          message: "Product added",
+          description: `${payload.name} has been saved.`,
+        });
+      }
+      await reload();
       setModalOpen(false);
+    } catch (err) {
       open?.({
-        type: "success",
-        message: "Product updated",
-        description: `${payload.name} has been updated.`,
+        type: "error",
+        message: "Save failed",
+        description: (err as Error).message,
       });
-    } else {
-      addProduct(payload);
-      setProducts(getProducts());
-      setModalOpen(false);
-      open?.({
-        type: "success",
-        message: "Product added",
-        description: `${payload.name} has been saved.`,
-      });
+    } finally {
+      setSaving(false);
     }
   }
 
-  function handleDelete(id: string, productName: string) {
-    deleteProduct(id);
-    setProducts(getProducts());
-    open?.({
-      type: "success",
-      message: "Product deleted",
-      description: `${productName} has been removed.`,
-    });
+  async function handleDelete(id: string, productName: string) {
+    try {
+      await deleteProduct(id);
+      await reload();
+      open?.({
+        type: "success",
+        message: "Product deleted",
+        description: `${productName} has been removed.`,
+      });
+    } catch (err) {
+      open?.({
+        type: "error",
+        message: "Delete failed",
+        description: (err as Error).message,
+      });
+    }
   }
 
   return (
@@ -382,7 +418,7 @@ export default function Products() {
                 <span>{editingId ? "SKU" : "SKU (auto-generated)"}</span>
                 <input
                   type="text"
-                  value={editingId ? editingSku : previewSku}
+                  value={editingId ? editingSku : "Auto-generated on save"}
                   readOnly
                   disabled
                 />
@@ -437,8 +473,12 @@ export default function Products() {
               )}
 
               <div className="wm-modal-footer">
-                <button type="submit" className="wm-primary-btn">
-                  {editingId ? "Update Product" : "Save Product"}
+                <button type="submit" className="wm-primary-btn" disabled={saving}>
+                  {saving
+                    ? "Saving…"
+                    : editingId
+                      ? "Update Product"
+                      : "Save Product"}
                 </button>
               </div>
             </form>
