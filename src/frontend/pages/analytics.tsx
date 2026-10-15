@@ -13,7 +13,6 @@ import {
 import {
   getIncomeSummary,
   getIncomePerProduct,
-  getWrapUsagePerProduct,
   formatPeso,
 } from "@/backend/wrapmate-store";
 
@@ -60,7 +59,6 @@ export default function Analytics() {
   // Real analytics data from COMPLETED orders.
   const summary = getIncomeSummary();
   const incomePerProduct = getIncomePerProduct();
-  const wrapUsage = getWrapUsagePerProduct();
 
   const tooltipStyle = {
     background: "var(--card)",
@@ -199,139 +197,6 @@ export default function Analytics() {
         </div>
       </section>
 
-      {/* Bubble Wrap Use — total length used per product */}
-      <section className="dashboard-section">
-        <div className="dashboard-panel">
-          <div className="dashboard-panel-header">
-            <div>
-              <h2>Bubble Wrap Use</h2>
-              <p>
-                Total bubble wrap length used per product (length × quantity,
-                completed orders only).
-              </p>
-            </div>
-          </div>
-
-          <div className="dashboard-chart">
-            {wrapUsage.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={wrapUsage}
-                  margin={{ top: 10, right: 12, left: 0, bottom: 0 }}
-                  barCategoryGap="28%"
-                >
-                  <CartesianGrid
-                    strokeDasharray="4 4"
-                    stroke={colors.grid}
-                    strokeOpacity={0.6}
-                    vertical={false}
-                  />
-                  <XAxis
-                    dataKey="product"
-                    stroke={colors.text}
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    dy={6}
-                  />
-                  <YAxis
-                    stroke={colors.text}
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    width={56}
-                    tickFormatter={(v: number) => `${v} cm`}
-                  />
-                  <Tooltip
-                    contentStyle={tooltipStyle}
-                    cursor={{ fill: colors.text, fillOpacity: 0.06, radius: 6 }}
-                    formatter={(value: number) => `${value} cm`}
-                  />
-                  <Bar
-                    name="Total wrap used"
-                    dataKey="totalLength"
-                    fill={colors.chart1}
-                    radius={[6, 6, 0, 0]}
-                    maxBarSize={56}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="wm-chart-empty">
-                No completed orders yet. Mark orders as Completed in the Order
-                Queue to see bubble wrap usage.
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Bubble Wrap Average — average wrap length per order per product */}
-      <section className="dashboard-section">
-        <div className="dashboard-panel">
-          <div className="dashboard-panel-header">
-            <div>
-              <h2>Bubble Wrap Average</h2>
-              <p>
-                Average wrap length per order, by product (completed orders
-                only).
-              </p>
-            </div>
-          </div>
-
-          <div className="dashboard-chart">
-            {wrapUsage.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={wrapUsage}
-                  margin={{ top: 10, right: 12, left: 0, bottom: 0 }}
-                  barCategoryGap="28%"
-                >
-                  <CartesianGrid
-                    strokeDasharray="4 4"
-                    stroke={colors.grid}
-                    strokeOpacity={0.6}
-                    vertical={false}
-                  />
-                  <XAxis
-                    dataKey="product"
-                    stroke={colors.text}
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    dy={6}
-                  />
-                  <YAxis
-                    stroke={colors.text}
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    width={56}
-                    tickFormatter={(v: number) => `${v} cm`}
-                  />
-                  <Tooltip
-                    contentStyle={tooltipStyle}
-                    cursor={{ fill: colors.text, fillOpacity: 0.06, radius: 6 }}
-                    formatter={(value: number) => `${value} cm`}
-                  />
-                  <Bar
-                    name="Average wrap length"
-                    dataKey="averageLength"
-                    fill={colors.chart2}
-                    radius={[6, 6, 0, 0]}
-                    maxBarSize={56}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="wm-chart-empty">
-                No completed orders yet. Mark orders as Completed in the Order
-                Queue to see the average wrap length.
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
