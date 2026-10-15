@@ -1,11 +1,3 @@
-/* ============================================================
-   Responsive breakpoints (must load last)
-   ============================================================ */
-
-/* ========================================
-   RESPONSIVE
-   ======================================== */
-
 @media (max-width: 1000px) {
   .dashboard-stats,
   .order-stats {
@@ -74,12 +66,12 @@
     justify-content: space-between;
   }
 
-  /* Charts a touch shorter on phones */
+  
   .dashboard-chart {
     height: 240px;
   }
 
-  /* Settings page spacing on phones */
+  
   .settings-card {
     padding: 18px;
   }

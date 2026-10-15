@@ -68,7 +68,7 @@ function App() {
               ]}
             >
               <Routes>
-                {/* Protected app routes */}
+
                 <Route
                   element={
                     <Authenticated
@@ -89,7 +89,7 @@ function App() {
                   <Route path="/settings" element={<Settings />} />
                 </Route>
 
-                {/* Auth routes — redirect to the app if already logged in */}
+
                 <Route
                   element={
                     <Authenticated

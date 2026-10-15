@@ -76,8 +76,6 @@ export const SignUpForm = () => {
       },
       {
         onSuccess: (data) => {
-          // Only celebrate a genuine success; a failed register still
-          // resolves (success: false) and Refine shows its own error toast.
           if (data?.success) {
             open?.({
               type: "success",

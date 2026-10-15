@@ -6,7 +6,6 @@ export default function Records() {
   const [orders] = useState<Order[]>(() => getOrders());
   const [search, setSearch] = useState("");
 
-  // Records = Table View of COMPLETED packaging runs only (per the proposal).
   const completed = useMemo(
     () => orders.filter((o) => o.status === "Completed"),
     [orders]

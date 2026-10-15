@@ -1,14 +1,5 @@
 import type { AuthProvider } from "@refinedev/core";
 
-/**
- * WrapMate prototype auth provider.
- *
- * This is a client-side-only (localStorage) implementation suitable for a
- * prototype — there is no backend. It follows the Refine v5 AuthProvider
- * interface so the built-in SignInForm / SignUpForm components work via the
- * useLogin / useRegister / useLogout / useGetIdentity hooks.
- */
-
 export type UserRole = "operator" | "admin";
 
 export type WrapMateUser = {
@@ -16,16 +7,14 @@ export type WrapMateUser = {
   role: UserRole;
 };
 
-/** Editable profile fields shown on the Settings page. */
 export type UserProfile = {
   firstName: string;
   middleInitial: string;
   lastName: string;
   email: string;
-  avatar: string; // data URL or empty string
+  avatar: string;
 };
 
-/** A stored account record. */
 type StoredUser = {
   email: string;
   password: string;
@@ -36,17 +25,11 @@ type StoredUser = {
 const USERS_KEY = "wrapmate_users";
 const CURRENT_USER_KEY = "wrapmate_current_user";
 
-/**
- * Seed accounts. These keep the original prototype logins working:
- *   - operator@wrapmate.local / operator123   (also usable as "operator")
- *   - admin@wrapmate.local    / admin123       (also usable as "admin")
- */
 const SEED_USERS: StoredUser[] = [
   { email: "operator@wrapmate.local", password: "operator123", role: "operator" },
   { email: "admin@wrapmate.local", password: "admin123", role: "admin" },
 ];
 
-/** Map a bare username alias to its seeded email. */
 const USERNAME_ALIASES: Record<string, string> = {
   operator: "operator@wrapmate.local",
   admin: "admin@wrapmate.local",
@@ -73,13 +56,11 @@ function saveUsers(users: StoredUser[]) {
   localStorage.setItem(USERS_KEY, JSON.stringify(users));
 }
 
-/** Derive a friendly display username from an email (part before "@"). */
 function usernameFromEmail(email: string): string {
   const at = email.indexOf("@");
   return at > 0 ? email.slice(0, at) : email;
 }
 
-/** Resolve an identifier (email OR bare-username alias) to a canonical email. */
 function resolveIdentifier(identifier: string): string {
   const value = identifier.trim().toLowerCase();
   return USERNAME_ALIASES[value] ?? value;
@@ -101,7 +82,6 @@ export function getCurrentUser(): WrapMateUser | null {
   }
 }
 
-/** Build a default profile for a user that has never saved one. */
 function defaultProfile(user: StoredUser): UserProfile {
   const username = usernameFromEmail(user.email);
   return {
@@ -118,13 +98,11 @@ function capitalizeWord(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-/** Find the current logged-in user's stored record (by email). */
 function findCurrentStoredUser(): { users: StoredUser[]; index: number } | null {
   const current = getCurrentUser();
   if (!current) return null;
 
   const users = loadUsers();
-  // The current user's email: resolve from alias or match by derived username.
   const canonical = resolveIdentifier(current.username);
   let index = users.findIndex((u) => u.email.toLowerCase() === canonical);
 
@@ -138,10 +116,6 @@ function findCurrentStoredUser(): { users: StoredUser[]; index: number } | null 
   return { users, index };
 }
 
-/**
- * Returns the current user's profile, creating sensible defaults if none has
- * been saved yet.
- */
 export function getProfile(): UserProfile | null {
   const found = findCurrentStoredUser();
   if (!found) return null;
@@ -150,7 +124,6 @@ export function getProfile(): UserProfile | null {
   return user.profile ?? defaultProfile(user);
 }
 
-/** Save the current user's profile to localStorage. Returns the saved profile. */
 export function saveProfile(
   profile: UserProfile
 ): { success: boolean; error?: string } {
@@ -163,10 +136,6 @@ export function saveProfile(
   return { success: true };
 }
 
-/**
- * Change the current user's password. Verifies the current password first.
- * Really updates the stored password — the next login requires the new one.
- */
 export function changePassword(
   currentPassword: string,
   newPassword: string
@@ -267,7 +236,6 @@ export const authProvider: AuthProvider = {
       };
     }
 
-    // New sign-ups are always operators. Admin stays seeded-only.
     const newUser: StoredUser = {
       email: canonicalEmail,
       password,
@@ -277,9 +245,6 @@ export const authProvider: AuthProvider = {
     users.push(newUser);
     saveUsers(users);
 
-    // Professional flow: do NOT auto-login. The user is sent to the login
-    // page to sign in with the credentials they just created. The success
-    // toast is shown by the SignUpForm's onSuccess handler.
     return {
       success: true,
       redirectTo: "/login",
@@ -310,8 +275,6 @@ export const authProvider: AuthProvider = {
 
     const profile = getProfile();
 
-    // Prefer the saved full name (First + M.I. + Last) when present,
-    // otherwise fall back to the login username.
     const fullName = profile
       ? [profile.firstName, profile.middleInitial, profile.lastName]
           .map((part) => (part ?? "").trim())

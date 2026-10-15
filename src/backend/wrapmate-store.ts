@@ -1,39 +1,20 @@
-/**
- * WrapMate prototype data store (localStorage).
- *
- * Frontend-only persistence for Products and Orders — no backend. This keeps
- * the bubble-wrap packaging data between page refreshes so the app behaves
- * like a real system for the prototype/demo.
- *
- * Core formula (from the capstone proposal):
- *   L = (2 * (W + H) * P) + A
- * where W = width (cm), H = height (cm), P = protection multiplier
- * (1.0 / 2.0 / 3.0), A = 5 cm packaging allowance.
- */
-
-/**
- * Dispatched on `window` after the user's profile changes (e.g. saving on the
- * Settings page) so components like the sidebar footer can re-read the updated
- * identity immediately without a full page reload.
- */
 export const IDENTITY_UPDATED_EVENT = "wrapmate:identity-updated";
 
-export const PACKAGING_ALLOWANCE = 5; // A (cm)
+export const PACKAGING_ALLOWANCE = 5;
 export const PROTECTION_LEVELS = [1.0, 2.0, 3.0] as const;
 export type ProtectionLevel = (typeof PROTECTION_LEVELS)[number];
 
 export type Product = {
   id: string;
-  sku: string; // auto-generated, e.g. WM-PROD-001
+  sku: string;
   name: string;
-  width: number; // W (cm)
-  height: number; // H (cm)
-  cost: number; // ₱ cost to the shop per unit
-  price: number; // ₱ selling price per unit
-  image: string; // data URL or empty
+  width: number;
+  height: number;
+  cost: number;
+  price: number;
+  image: string;
 };
 
-/** Profit per unit = selling price − cost. */
 export function unitProfit(product: Pick<Product, "cost" | "price">): number {
   return Math.round((product.price - product.cost) * 100) / 100;
 }
@@ -41,22 +22,22 @@ export function unitProfit(product: Pick<Product, "cost" | "price">): number {
 export type OrderStatus = "Pending" | "Processing" | "Completed";
 
 export type Order = {
-  id: string; // e.g. WM-001
+  id: string;
   customer: string;
   productId: string;
   productName: string;
   sku: string;
-  width: number; // snapshot of product W at creation
-  height: number; // snapshot of product H at creation
+  width: number;
+  height: number;
   protection: ProtectionLevel;
-  length: number; // calculated L (cm)
+  length: number;
   quantity: number;
-  unitCost: number; // ₱ snapshot of product cost at creation
-  unitPrice: number; // ₱ snapshot of product selling price at creation
-  revenue: number; // ₱ unitPrice * quantity
-  profit: number; // ₱ (unitPrice - unitCost) * quantity
+  unitCost: number;
+  unitPrice: number;
+  revenue: number;
+  profit: number;
   status: OrderStatus;
-  date: string; // YYYY-MM-DD
+  date: string;
 };
 
 const PRODUCTS_KEY = "wrapmate_products";
@@ -64,24 +45,14 @@ const ORDERS_KEY = "wrapmate_orders";
 const PRODUCT_SEQ_KEY = "wrapmate_product_seq";
 const ORDER_SEQ_KEY = "wrapmate_order_seq";
 
-/* ---------------------------------------------------------------- */
-/* Calculation                                                       */
-/* ---------------------------------------------------------------- */
-
-/** L = (2 * (W + H) * P) + A */
 export function calculateLength(
   width: number,
   height: number,
   protection: number
 ): number {
   const value = 2 * (width + height) * protection + PACKAGING_ALLOWANCE;
-  // Round to 1 decimal place for display.
   return Math.round(value * 10) / 10;
 }
-
-/* ---------------------------------------------------------------- */
-/* Low-level helpers                                                 */
-/* ---------------------------------------------------------------- */
 
 function readJSON<T>(key: string, fallback: T): T {
   const raw = localStorage.getItem(key);
@@ -108,15 +79,6 @@ function pad(num: number, size: number): string {
   return String(num).padStart(size, "0");
 }
 
-/* ---------------------------------------------------------------- */
-/* First-run init                                                    */
-/* ---------------------------------------------------------------- */
-
-/**
- * The app starts EMPTY — no sample/seed products or orders. On first run we
- * just initialize the stores to empty arrays so the rest of the code can read
- * them safely. Users create their own products and orders.
- */
 function seedIfEmpty() {
   if (!localStorage.getItem(PRODUCTS_KEY)) {
     writeJSON(PRODUCTS_KEY, []);
@@ -128,22 +90,9 @@ function seedIfEmpty() {
   }
 }
 
-/* ---------------------------------------------------------------- */
-/* Migration — backfill fields added in later versions              */
-/* ---------------------------------------------------------------- */
-
-/**
- * Default money values for records created before the cost/price feature.
- * Non-zero so old data doesn't show ₱0; the user can edit products anytime.
- */
 const DEFAULT_COST = 100;
 const DEFAULT_PRICE = 180;
 
-/**
- * Ensure every stored product has cost/price. Old products (saved before the
- * money fields existed) get sensible non-zero defaults, then are re-saved so
- * the upgrade only happens once. Returns the (possibly migrated) products.
- */
 function migrateProducts(products: Product[]): Product[] {
   let changed = false;
   const migrated = products.map((p) => {
@@ -162,11 +111,6 @@ function migrateProducts(products: Product[]): Product[] {
   return migrated;
 }
 
-/**
- * Ensure every stored order has unitCost/unitPrice/revenue/profit. Old orders
- * get values from their linked product (or defaults), then revenue/profit are
- * recomputed and re-saved once.
- */
 function migrateOrders(orders: Order[], products: Product[]): Order[] {
   let changed = false;
   const migrated = orders.map((o) => {
@@ -200,17 +144,12 @@ function migrateOrders(orders: Order[], products: Product[]): Order[] {
   return migrated;
 }
 
-/* ---------------------------------------------------------------- */
-/* Products API                                                      */
-/* ---------------------------------------------------------------- */
-
 export function getProducts(): Product[] {
   seedIfEmpty();
   return migrateProducts(readJSON<Product[]>(PRODUCTS_KEY, []));
 }
 
 export function generateProductSku(): string {
-  // Peek at the next sequence without consuming it (for live preview).
   const current = Number(localStorage.getItem(PRODUCT_SEQ_KEY) ?? "0");
   return `WM-PROD-${pad(current + 1, 3)}`;
 }
@@ -258,7 +197,6 @@ export function updateProduct(
   const index = products.findIndex((p) => p.id === id);
   if (index === -1) return null;
 
-  // Keep the original id and SKU; update the editable fields.
   products[index] = {
     ...products[index],
     name: input.name,
@@ -276,10 +214,6 @@ export function deleteProduct(id: string) {
   const products = getProducts().filter((p) => p.id !== id);
   writeJSON(PRODUCTS_KEY, products);
 }
-
-/* ---------------------------------------------------------------- */
-/* Orders API                                                        */
-/* ---------------------------------------------------------------- */
 
 export function getOrders(): Order[] {
   seedIfEmpty();
@@ -342,11 +276,6 @@ export function deleteOrder(id: string) {
   writeJSON(ORDERS_KEY, orders);
 }
 
-/* ---------------------------------------------------------------- */
-/* Income analytics (Completed orders only)                          */
-/* ---------------------------------------------------------------- */
-
-/** Format a number as Philippine Peso, e.g. ₱1,234.50 */
 export function formatPeso(value: number): string {
   return `₱${value.toLocaleString("en-PH", {
     minimumFractionDigits: 0,
@@ -360,7 +289,6 @@ export type IncomeSummary = {
   completedOrders: number;
 };
 
-/** Totals across COMPLETED orders only (realized income). */
 export function getIncomeSummary(): IncomeSummary {
   const completed = getOrders().filter((o) => o.status === "Completed");
   const totalRevenue = completed.reduce((s, o) => s + o.revenue, 0);
@@ -378,7 +306,6 @@ export type ProductIncome = {
   profit: number;
 };
 
-/** Revenue + profit grouped per product, from COMPLETED orders only. */
 export function getIncomePerProduct(): ProductIncome[] {
   const completed = getOrders().filter((o) => o.status === "Completed");
   const map = new Map<string, ProductIncome>();
@@ -401,23 +328,12 @@ export function getIncomePerProduct(): ProductIncome[] {
   }));
 }
 
-/* ---------------------------------------------------------------- */
-/* Bubble wrap usage analytics (Completed orders only)               */
-/* ---------------------------------------------------------------- */
-
 export type WrapUsage = {
   product: string;
-  /** Total bubble wrap length used = sum of (L × quantity) across orders. */
   totalLength: number;
-  /** Average wrap length per order (mean of L) for this product. */
   averageLength: number;
 };
 
-/**
- * Bubble wrap usage grouped per product, from COMPLETED orders only.
- * - totalLength: total wrap dispensed (L × qty, summed)
- * - averageLength: mean target length (L) per order
- */
 export function getWrapUsagePerProduct(): WrapUsage[] {
   const completed = getOrders().filter((o) => o.status === "Completed");
   const map = new Map<
@@ -447,13 +363,10 @@ export function getWrapUsagePerProduct(): WrapUsage[] {
 }
 
 export type WrapSummary = {
-  /** Total bubble wrap dispensed across completed orders (cm). */
   totalUsed: number;
-  /** Average wrap length per completed order (cm). */
   averageLength: number;
 };
 
-/** Overall bubble wrap totals, from COMPLETED orders only. */
 export function getWrapSummary(): WrapSummary {
   const completed = getOrders().filter((o) => o.status === "Completed");
   const totalUsed = completed.reduce((s, o) => s + o.length * o.quantity, 0);
