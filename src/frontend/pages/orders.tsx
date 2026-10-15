@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
 import { useNotification } from "@refinedev/core";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Trash2 } from "lucide-react";
 import {
   getOrders,
   getProducts,
   addOrder,
   updateOrderStatus,
+  deleteOrder,
   calculateLength,
   formatPeso,
   PROTECTION_LEVELS,
@@ -22,6 +23,8 @@ export default function Orders() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"All" | OrderStatus>("All");
   const [modalOpen, setModalOpen] = useState(false);
+  // The order pending deletion (null = no confirmation open).
+  const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
 
   // Add-order form state
   const [customer, setCustomer] = useState("");
@@ -60,6 +63,19 @@ export default function Orders() {
   function changeStatus(id: string, status: OrderStatus) {
     updateOrderStatus(id, status);
     setOrders(getOrders());
+  }
+
+  function confirmDelete() {
+    if (!orderToDelete) return;
+    const removed = orderToDelete;
+    deleteOrder(removed.id);
+    setOrders(getOrders());
+    setOrderToDelete(null);
+    open?.({
+      type: "success",
+      message: "Order deleted",
+      description: `Order ${removed.id} has been removed.`,
+    });
   }
 
   function resetForm() {
@@ -184,6 +200,7 @@ export default function Orders() {
                 <th>Qty</th>
                 <th>Status</th>
                 <th>Date</th>
+                <th></th>
               </tr>
             </thead>
 
@@ -217,11 +234,21 @@ export default function Orders() {
                       </select>
                     </td>
                     <td>{order.date}</td>
+                    <td>
+                      <button
+                        type="button"
+                        className="wm-icon-btn wm-danger"
+                        onClick={() => setOrderToDelete(order)}
+                        aria-label={`Delete order ${order.id}`}
+                      >
+                        <Trash2 />
+                      </button>
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={10} className="empty-orders">
+                  <td colSpan={11} className="empty-orders">
                     No orders found.
                   </td>
                 </tr>
@@ -374,6 +401,59 @@ export default function Orders() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
+      {orderToDelete && (
+        <div
+          className="wm-modal-overlay"
+          onClick={() => setOrderToDelete(null)}
+        >
+          <div
+            className="wm-modal wm-modal-sm"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="wm-modal-header">
+              <h2>Delete order?</h2>
+              <button
+                type="button"
+                className="wm-icon-btn"
+                onClick={() => setOrderToDelete(null)}
+                aria-label="Close"
+              >
+                <X />
+              </button>
+            </div>
+
+            <div className="wm-modal-body">
+              <p className="wm-confirm-text">
+                Are you sure you want to delete order{" "}
+                <strong>{orderToDelete.id}</strong> ({orderToDelete.customer} —{" "}
+                {orderToDelete.productName})? This action cannot be undone.
+              </p>
+
+              <div className="wm-modal-footer wm-confirm-actions">
+                <button
+                  type="button"
+                  className="wm-secondary-btn"
+                  onClick={() => setOrderToDelete(null)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="wm-danger-btn"
+                  onClick={confirmDelete}
+                >
+                  <Trash2 />
+                  Delete
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

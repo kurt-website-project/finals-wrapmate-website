@@ -278,6 +278,65 @@
   margin-top: 4px;
 }
 
+/* Compact confirmation modal */
+.wm-modal-sm {
+  max-width: 420px;
+}
+
+.wm-confirm-text {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.wm-confirm-text strong {
+  color: var(--foreground);
+}
+
+.wm-confirm-actions {
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.wm-danger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--destructive);
+  color: var(--destructive-foreground);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 2px color-mix(in oklch, var(--destructive) 30%, transparent);
+  transition:
+    background 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.wm-danger-btn:hover {
+  background: color-mix(in oklch, var(--destructive) 90%, black);
+  box-shadow: 0 3px 10px color-mix(in oklch, var(--destructive) 35%, transparent);
+}
+
+.wm-danger-btn:active {
+  transform: translateY(1px);
+}
+
+.wm-danger-btn:focus-visible {
+  outline: 2px solid var(--destructive);
+  outline-offset: 2px;
+}
+
+.wm-danger-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
 /* Modal fields */
 
 .wm-field {
