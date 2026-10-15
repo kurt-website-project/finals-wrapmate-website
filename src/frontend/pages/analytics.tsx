@@ -11,11 +11,9 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import {
-  getIncomeSummary,
-  getIncomePerProduct,
-  getWrapUsagePerProduct,
-  getWrapSummary,
+  getStats,
   formatPeso,
+  type Stats,
 } from "@/backend/wrapmate-store";
 
 type ChartColors = {
@@ -57,10 +55,22 @@ function useChartColors(): ChartColors {
 export default function Analytics() {
   const colors = useChartColors();
 
-  const summary = getIncomeSummary();
-  const incomePerProduct = getIncomePerProduct();
-  const wrapUsage = getWrapUsagePerProduct();
-  const wrapSummary = getWrapSummary();
+  const [stats, setStats] = useState<Stats | null>(null);
+
+  useEffect(() => {
+    getStats()
+      .then(setStats)
+      .catch(() => setStats(null));
+  }, []);
+
+  const summary = stats?.income ?? {
+    totalRevenue: 0,
+    totalProfit: 0,
+    completedOrders: 0,
+  };
+  const incomePerProduct = stats?.incomePerProduct ?? [];
+  const wrapUsage = stats?.wrapUsage ?? [];
+  const wrapSummary = stats?.wrapSummary ?? { totalUsed: 0, averageLength: 0 };
 
   const tooltipStyle = {
     background: "var(--card)",

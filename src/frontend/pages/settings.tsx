@@ -1,13 +1,14 @@
 import { useRef, useState } from "react";
 import { useGetIdentity, useNotification } from "@refinedev/core";
+import { useEffect, useRef, useState } from "react";
 import { Camera, Save, KeyRound, Eye, EyeOff } from "lucide-react";
-import { IDENTITY_UPDATED_EVENT } from "@/backend/wrapmate-store";
 import {
   getProfile,
   saveProfile,
   changePassword,
   type UserProfile,
 } from "@/backend/auth";
+import { uploadFile, IDENTITY_UPDATED_EVENT } from "@/backend/api";
 
 type Identity = {
   username?: string;
@@ -23,16 +24,21 @@ export default function Settings() {
   const { data: identity, refetch } = useGetIdentity<Identity>();
   const { open } = useNotification();
 
-  const initialProfile = getProfile();
-  const [profile, setProfile] = useState<UserProfile>(
-    initialProfile ?? {
-      firstName: "",
-      middleInitial: "",
-      lastName: "",
-      email: "",
-      avatar: "",
-    }
-  );
+  const [profile, setProfile] = useState<UserProfile>({
+    firstName: "",
+    middleInitial: "",
+    lastName: "",
+    email: "",
+    avatar: "",
+  });
+
+  useEffect(() => {
+    getProfile()
+      .then((p) => {
+        if (p) setProfile(p);
+      })
+      .catch(() => {});
+  }, []);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -51,7 +57,7 @@ export default function Settings() {
     fileInputRef.current?.click();
   }
 
-  function handlePhotoChange(event: React.ChangeEvent<HTMLInputElement>) {
+  async function handlePhotoChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -64,22 +70,27 @@ export default function Settings() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      updateField("avatar", String(reader.result ?? ""));
-    };
-    reader.readAsDataURL(file);
     event.target.value = "";
+    try {
+      const { url } = await uploadFile(file);
+      updateField("avatar", url);
+    } catch (err) {
+      open?.({
+        type: "error",
+        message: "Upload failed",
+        description: (err as Error).message,
+      });
+    }
   }
 
   function handleRemovePhoto() {
     updateField("avatar", "");
   }
 
-  function handleSaveProfile(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSaveProfile(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const result = saveProfile(profile);
+    const result = await saveProfile(profile);
     if (!result.success) {
       open?.({
         type: "error",
@@ -98,7 +109,7 @@ export default function Settings() {
     });
   }
 
-  function handleUpdatePassword(event: React.FormEvent<HTMLFormElement>) {
+  async function handleUpdatePassword(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (newPassword !== confirmPassword) {
@@ -110,7 +121,7 @@ export default function Settings() {
       return;
     }
 
-    const result = changePassword(currentPassword, newPassword);
+    const result = await changePassword(currentPassword, newPassword);
     if (!result.success) {
       open?.({
         type: "error",

@@ -1,10 +1,18 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Table as TableIcon } from "lucide-react";
 import { getOrders, type Order } from "@/backend/wrapmate-store";
 
 export default function Records() {
-  const [orders] = useState<Order[]>(() => getOrders());
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    getOrders()
+      .then(setOrders)
+      .catch(() => setOrders([]))
+      .finally(() => setLoading(false));
+  }, []);
 
   const completed = useMemo(
     () => orders.filter((o) => o.status === "Completed"),
@@ -95,9 +103,11 @@ export default function Records() {
               ) : (
                 <tr>
                   <td colSpan={9} className="empty-orders">
-                    {search.trim()
-                      ? "No completed records match your search."
-                      : "No completed packaging runs yet. Mark an order as Completed in the Order Queue to see it here."}
+                    {loading
+                      ? "Loading records…"
+                      : search.trim()
+                        ? "No completed records match your search."
+                        : "No completed packaging runs yet. Mark an order as Completed in the Order Queue to see it here."}
                   </td>
                 </tr>
               )}
@@ -106,7 +116,7 @@ export default function Records() {
         </div>
       </div>
 
-      {completed.length === 0 && !search.trim() && (
+      {!loading && completed.length === 0 && !search.trim() && (
         <div className="placeholder-empty" style={{ marginTop: 16 }}>
           <div className="placeholder-empty-icon">
             <TableIcon />

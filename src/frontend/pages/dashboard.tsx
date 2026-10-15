@@ -19,7 +19,12 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { getOrders, getWrapUsagePerProduct } from "@/backend/wrapmate-store";
+import {
+  getOrders,
+  getStats,
+  type Order,
+  type WrapUsage,
+} from "@/backend/wrapmate-store";
 
 type ChartColors = {
   chart1: string;
@@ -60,7 +65,18 @@ function useChartColors(): ChartColors {
 export default function Dashboard() {
   const navigate = useNavigate();
   const colors = useChartColors();
-  const wrapUsage = getWrapUsagePerProduct();
+
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [wrapUsage, setWrapUsage] = useState<WrapUsage[]>([]);
+
+  useEffect(() => {
+    getOrders()
+      .then(setOrders)
+      .catch(() => setOrders([]));
+    getStats()
+      .then((s) => setWrapUsage(s.wrapUsage))
+      .catch(() => setWrapUsage([]));
+  }, []);
 
   const tooltipStyle = {
     background: "var(--card)",
@@ -70,7 +86,6 @@ export default function Dashboard() {
     fontSize: "0.8rem",
   };
 
-  const orders = getOrders();
   const totalOrders = orders.length;
 
   const totalWrapUsedCm =

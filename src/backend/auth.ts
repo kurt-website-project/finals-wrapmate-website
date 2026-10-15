@@ -1,4 +1,5 @@
 import type { AuthProvider } from "@refinedev/core";
+import { apiRequest, setToken, clearToken, getToken } from "./api";
 
 export type UserRole = "operator" | "admin";
 
@@ -15,283 +16,147 @@ export type UserProfile = {
   avatar: string;
 };
 
-type StoredUser = {
+type ApiUser = {
+  id: string;
+  username: string;
   email: string;
-  password: string;
   role: UserRole;
-  profile?: UserProfile;
+  firstName: string;
+  middleInitial: string;
+  lastName: string;
+  avatarUrl: string;
+  displayName: string;
 };
-
-const USERS_KEY = "wrapmate_users";
-const CURRENT_USER_KEY = "wrapmate_current_user";
-
-const SEED_USERS: StoredUser[] = [
-  { email: "operator@wrapmate.local", password: "operator123", role: "operator" },
-  { email: "admin@wrapmate.local", password: "admin123", role: "admin" },
-];
-
-const USERNAME_ALIASES: Record<string, string> = {
-  operator: "operator@wrapmate.local",
-  admin: "admin@wrapmate.local",
-};
-
-function loadUsers(): StoredUser[] {
-  const raw = localStorage.getItem(USERS_KEY);
-
-  if (!raw) {
-    localStorage.setItem(USERS_KEY, JSON.stringify(SEED_USERS));
-    return [...SEED_USERS];
-  }
-
-  try {
-    const parsed = JSON.parse(raw) as StoredUser[];
-    return Array.isArray(parsed) ? parsed : [...SEED_USERS];
-  } catch {
-    localStorage.setItem(USERS_KEY, JSON.stringify(SEED_USERS));
-    return [...SEED_USERS];
-  }
-}
-
-function saveUsers(users: StoredUser[]) {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-}
-
-function usernameFromEmail(email: string): string {
-  const at = email.indexOf("@");
-  return at > 0 ? email.slice(0, at) : email;
-}
-
-function resolveIdentifier(identifier: string): string {
-  const value = identifier.trim().toLowerCase();
-  return USERNAME_ALIASES[value] ?? value;
-}
-
-function setCurrentUser(user: WrapMateUser) {
-  localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
-}
-
-export function getCurrentUser(): WrapMateUser | null {
-  const stored = localStorage.getItem(CURRENT_USER_KEY);
-  if (!stored) return null;
-
-  try {
-    return JSON.parse(stored) as WrapMateUser;
-  } catch {
-    localStorage.removeItem(CURRENT_USER_KEY);
-    return null;
-  }
-}
-
-function defaultProfile(user: StoredUser): UserProfile {
-  const username = usernameFromEmail(user.email);
-  return {
-    firstName: capitalizeWord(username),
-    middleInitial: "",
-    lastName: "",
-    email: user.email,
-    avatar: "",
-  };
-}
-
-function capitalizeWord(value: string): string {
-  if (!value) return "";
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
-function findCurrentStoredUser(): { users: StoredUser[]; index: number } | null {
-  const current = getCurrentUser();
-  if (!current) return null;
-
-  const users = loadUsers();
-  const canonical = resolveIdentifier(current.username);
-  let index = users.findIndex((u) => u.email.toLowerCase() === canonical);
-
-  if (index === -1) {
-    index = users.findIndex(
-      (u) => usernameFromEmail(u.email) === current.username
-    );
-  }
-
-  if (index === -1) return null;
-  return { users, index };
-}
-
-export function getProfile(): UserProfile | null {
-  const found = findCurrentStoredUser();
-  if (!found) return null;
-
-  const user = found.users[found.index];
-  return user.profile ?? defaultProfile(user);
-}
-
-export function saveProfile(
-  profile: UserProfile
-): { success: boolean; error?: string } {
-  const found = findCurrentStoredUser();
-  if (!found) return { success: false, error: "No authenticated user." };
-
-  const { users, index } = found;
-  users[index] = { ...users[index], profile };
-  saveUsers(users);
-  return { success: true };
-}
-
-export function changePassword(
-  currentPassword: string,
-  newPassword: string
-): { success: boolean; error?: string } {
-  const found = findCurrentStoredUser();
-  if (!found) return { success: false, error: "No authenticated user." };
-
-  const { users, index } = found;
-
-  if (users[index].password !== currentPassword) {
-    return { success: false, error: "Your current password is incorrect." };
-  }
-
-  if (newPassword.length < 8) {
-    return {
-      success: false,
-      error: "New password must be at least 8 characters long.",
-    };
-  }
-
-  users[index] = { ...users[index], password: newPassword };
-  saveUsers(users);
-  return { success: true };
-}
 
 type AuthParams = {
   email?: string;
   password?: string;
-  providerName?: string;
   [key: string]: unknown;
 };
+
+export async function fetchMe(): Promise<ApiUser | null> {
+  if (!getToken()) return null;
+  try {
+    const data = await apiRequest<{ user: ApiUser }>("/api/auth/me");
+    return data.user;
+  } catch {
+    return null;
+  }
+}
+
+export async function getProfile(): Promise<UserProfile | null> {
+  const user = await fetchMe();
+  if (!user) return null;
+  return {
+    firstName: user.firstName || "",
+    middleInitial: user.middleInitial || "",
+    lastName: user.lastName || "",
+    email: user.email || "",
+    avatar: user.avatarUrl || "",
+  };
+}
+
+export async function saveProfile(
+  profile: UserProfile
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await apiRequest("/api/auth/profile", {
+      method: "PATCH",
+      body: {
+        firstName: profile.firstName,
+        middleInitial: profile.middleInitial,
+        lastName: profile.lastName,
+        email: profile.email,
+        avatarUrl: profile.avatar,
+      },
+    });
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: (err as Error).message };
+  }
+}
+
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await apiRequest("/api/auth/password", {
+      method: "PATCH",
+      body: { currentPassword, newPassword },
+    });
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: (err as Error).message };
+  }
+}
 
 export const authProvider: AuthProvider = {
   async login({ email, password }: AuthParams) {
     if (!email || !password) {
       return {
         success: false,
-        error: {
-          name: "Login failed",
-          message: "Email and password are required.",
-        },
+        error: { name: "Login failed", message: "Email and password are required." },
       };
     }
-
-    const canonicalEmail = resolveIdentifier(email);
-    const users = loadUsers();
-    const account = users.find((u) => u.email.toLowerCase() === canonicalEmail);
-
-    if (!account || account.password !== password) {
+    try {
+      const data = await apiRequest<{ token: string; user: ApiUser }>(
+        "/api/auth/login",
+        { method: "POST", body: { email, password }, auth: false }
+      );
+      setToken(data.token);
+      return { success: true, redirectTo: "/" };
+    } catch (err) {
       return {
         success: false,
-        error: {
-          name: "Login failed",
-          message: "Invalid email or password.",
-        },
+        error: { name: "Login failed", message: (err as Error).message },
       };
     }
-
-    setCurrentUser({
-      username: usernameFromEmail(account.email),
-      role: account.role,
-    });
-
-    return { success: true, redirectTo: "/" };
   },
 
   async register({ email, password }: AuthParams) {
     if (!email || !password) {
       return {
         success: false,
-        error: {
-          name: "Register failed",
-          message: "Email and password are required.",
-        },
+        error: { name: "Register failed", message: "Email and password are required." },
       };
     }
-
-    if (password.length < 8) {
+    try {
+      await apiRequest("/api/auth/register", {
+        method: "POST",
+        body: { email, password },
+        auth: false,
+      });
+      return { success: true, redirectTo: "/login" };
+    } catch (err) {
       return {
         success: false,
-        error: {
-          name: "Register failed",
-          message: "Password must be at least 8 characters long.",
-        },
+        error: { name: "Register failed", message: (err as Error).message },
       };
     }
-
-    const canonicalEmail = resolveIdentifier(email);
-    const users = loadUsers();
-
-    if (users.some((u) => u.email.toLowerCase() === canonicalEmail)) {
-      return {
-        success: false,
-        error: {
-          name: "Register failed",
-          message: "An account with this email already exists.",
-        },
-      };
-    }
-
-    const newUser: StoredUser = {
-      email: canonicalEmail,
-      password,
-      role: "operator",
-    };
-
-    users.push(newUser);
-    saveUsers(users);
-
-    return {
-      success: true,
-      redirectTo: "/login",
-    };
   },
 
   async logout() {
-    localStorage.removeItem(CURRENT_USER_KEY);
+    clearToken();
     return { success: true, redirectTo: "/login" };
   },
 
   async check() {
-    const user = getCurrentUser();
-
-    if (user) {
-      return { authenticated: true };
-    }
-
-    return {
-      authenticated: false,
-      redirectTo: "/login",
-    };
+    const user = await fetchMe();
+    if (user) return { authenticated: true };
+    return { authenticated: false, redirectTo: "/login" };
   },
 
   async getIdentity() {
-    const user = getCurrentUser();
+    const user = await fetchMe();
     if (!user) return null;
-
-    const profile = getProfile();
-
-    const fullName = profile
-      ? [profile.firstName, profile.middleInitial, profile.lastName]
-          .map((part) => (part ?? "").trim())
-          .filter(Boolean)
-          .join(" ")
-      : "";
-
-    const displayName = fullName || user.username;
-
     return {
-      id: user.username,
-      name: displayName,
-      displayName,
+      id: user.id,
+      name: user.displayName,
+      displayName: user.displayName,
       username: user.username,
       role: user.role,
-      avatar: profile?.avatar || "",
-      profile: profile ?? undefined,
+      avatar: user.avatarUrl || "",
     };
   },
 
