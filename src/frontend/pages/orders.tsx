@@ -23,10 +23,8 @@ export default function Orders() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"All" | OrderStatus>("All");
   const [modalOpen, setModalOpen] = useState(false);
-  // The order pending deletion (null = no confirmation open).
   const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
 
-  // Add-order form state
   const [customer, setCustomer] = useState("");
   const [productId, setProductId] = useState("");
   const [quantity, setQuantity] = useState("1");
@@ -258,7 +256,6 @@ export default function Orders() {
         </div>
       </div>
 
-      {/* Add Order modal */}
       {modalOpen && (
         <div className="wm-modal-overlay" onClick={() => setModalOpen(false)}>
           <div
@@ -307,7 +304,6 @@ export default function Orders() {
                 </select>
               </label>
 
-              {/* Auto-filled dimensions (read-only) */}
               <div className="wm-field-row">
                 <label className="wm-field">
                   <span>Width (W) — auto</span>
@@ -329,7 +325,6 @@ export default function Orders() {
                 </label>
               </div>
 
-              {/* Auto-filled unit price (read-only) */}
               <label className="wm-field">
                 <span>Unit Selling Price — auto</span>
                 <input
@@ -368,7 +363,6 @@ export default function Orders() {
                 </label>
               </div>
 
-              {/* Live calculated length */}
               <div className="wm-calc-box">
                 <span className="wm-calc-label">Calculated bubble wrap length</span>
                 <span className="wm-calc-result">
@@ -377,7 +371,6 @@ export default function Orders() {
                 <span className="wm-calc-formula">L = (2 × (W + H) × P) + 5</span>
               </div>
 
-              {/* Live revenue / profit */}
               {selectedProduct && (
                 <div className="wm-calc-box">
                   <span className="wm-calc-label">Order total ({qtyNum} pcs)</span>
@@ -405,7 +398,6 @@ export default function Orders() {
         </div>
       )}
 
-      {/* Delete confirmation modal */}
       {orderToDelete && (
         <div
           className="wm-modal-overlay"

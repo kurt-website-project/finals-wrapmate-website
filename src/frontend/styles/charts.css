@@ -1,9 +1,3 @@
-/* ============================================================
-   Dashboard charts (Recharts), status bars & recent activity
-   ============================================================ */
-
-/* Dashboard Charts (Recharts) */
-
 .dashboard-chart {
   width: 100%;
   height: 280px;
@@ -21,7 +15,6 @@
   font-size: 0.85rem;
 }
 
-/* Keep Recharts focus outlines from showing a hard rectangle */
 .dashboard-chart svg:focus,
 .dashboard-chart .recharts-surface:focus {
   outline: none;
@@ -52,8 +45,6 @@
 .overview-row strong {
   font-size: 0.85rem;
 }
-
-/* Dashboard Status */
 
 .status-overview {
   display: flex;
@@ -102,8 +93,6 @@
 .status-bar-fill.pending {
   opacity: 0.5;
 }
-
-/* Recent Activity */
 
 .dashboard-activity-heading {
   margin-bottom: 14px;
@@ -190,7 +179,6 @@
   color: var(--muted-foreground);
   font-size: 0.7rem;
 }
-
 
 .orders-page {
   width: 100%;

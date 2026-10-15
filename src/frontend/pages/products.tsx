@@ -18,7 +18,6 @@ export default function Products() {
   const [products, setProducts] = useState<Product[]>(() => getProducts());
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
-  // null = adding a new product; a product id = editing that product.
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingSku, setEditingSku] = useState("");
 
@@ -30,7 +29,6 @@ export default function Products() {
     );
   });
 
-  // Form state
   const [name, setName] = useState("");
   const [width, setWidth] = useState("");
   const [height, setHeight] = useState("");
@@ -278,7 +276,6 @@ export default function Products() {
         </div>
       </div>
 
-      {/* Add Product modal */}
       {modalOpen && (
         <div className="wm-modal-overlay" onClick={closeModal}>
           <div
@@ -421,7 +418,6 @@ export default function Products() {
                 </div>
               </div>
 
-              {/* Live wrap-size preview */}
               {dimsValid && (
                 <div className="wm-calc-box">
                   <span className="wm-calc-label">

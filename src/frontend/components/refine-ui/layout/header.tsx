@@ -6,9 +6,6 @@ import { cn } from "@/frontend/lib/utils";
 export const Header = () => {
   const { isMobile } = useSidebar();
 
-  // Desktop no longer needs a top header bar: theme switching and the user
-  // menu now live in the sidebar footer. Mobile keeps a slim header with the
-  // sidebar trigger + brand so the menu is reachable on small screens.
   if (!isMobile) {
     return null;
   }

@@ -23,7 +23,6 @@ export default function Settings() {
   const { data: identity, refetch } = useGetIdentity<Identity>();
   const { open } = useNotification();
 
-  // --- Profile state (seeded from the saved profile in localStorage) ---
   const initialProfile = getProfile();
   const [profile, setProfile] = useState<UserProfile>(
     initialProfile ?? {
@@ -37,7 +36,6 @@ export default function Settings() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // --- Password state ---
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -71,7 +69,6 @@ export default function Settings() {
       updateField("avatar", String(reader.result ?? ""));
     };
     reader.readAsDataURL(file);
-    // Reset so selecting the same file again still fires onChange.
     event.target.value = "";
   }
 
@@ -92,8 +89,6 @@ export default function Settings() {
       return;
     }
 
-    // Refresh this page's identity, and notify the rest of the app (sidebar)
-    // to re-read the updated profile so the name/avatar update immediately.
     refetch?.();
     window.dispatchEvent(new Event(IDENTITY_UPDATED_EVENT));
     open?.({
@@ -143,7 +138,6 @@ export default function Settings() {
     <div className="settings-page">
       <h1 className="settings-title">Settings</h1>
 
-      {/* Profile card */}
       <section className="settings-card">
         <h2 className="settings-card-title">Profile</h2>
 
@@ -241,7 +235,6 @@ export default function Settings() {
         </form>
       </section>
 
-      {/* Change Password card */}
       <section className="settings-card">
         <h2 className="settings-card-title">
           <KeyRound className="settings-card-title-icon" />

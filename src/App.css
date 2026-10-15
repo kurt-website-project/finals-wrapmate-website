@@ -1,22 +1,8 @@
-/* ============================================================
-   WrapMate — Global stylesheet entry point
-
-   All styles are split into focused partials under ./frontend/styles/
-   and imported here in cascade order. Edit the relevant partial, not
-   this file.
-
-   NOTE: @import rules must stay at the very top of this file, with the
-   Tailwind imports first, so Tailwind v4 processes the theme correctly.
-   ============================================================ */
-
-/* Tailwind + animation layer (must come first) */
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* Theme tokens, dark mode, @theme inline, base layer */
 @import "./frontend/styles/base.css";
 
-/* Feature styles (order preserved from the original single file) */
 @import "./frontend/styles/login.css";
 @import "./frontend/styles/dashboard.css";
 @import "./frontend/styles/settings.css";
@@ -24,5 +10,4 @@
 @import "./frontend/styles/charts.css";
 @import "./frontend/styles/orders.css";
 
-/* Responsive overrides (must come last so they win) */
 @import "./frontend/styles/responsive.css";

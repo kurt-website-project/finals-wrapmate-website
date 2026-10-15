@@ -1,7 +1,3 @@
-/* ============================================================
-   Dashboard — welcome, stats, quick actions, panels
-   ============================================================ */
-
 .wrapmate-dashboard {
   width: 100%;
   max-width: 1400px;
@@ -34,8 +30,6 @@
   color: var(--muted-foreground);
   font-size: 0.95rem;
 }
-
-/* Dashboard Statistics */
 
 .dashboard-stats {
   display: grid;
@@ -106,8 +100,6 @@
   font-size: 0.72rem;
 }
 
-/* Dashboard Sections */
-
 .dashboard-section {
   margin-bottom: 32px;
 }
@@ -134,8 +126,6 @@
   color: var(--muted-foreground);
   font-size: 0.8rem;
 }
-
-/* Quick Actions */
 
 .dashboard-actions {
   display: grid;
@@ -210,8 +200,6 @@
   color: var(--muted-foreground);
 }
 
-/* Dashboard Panels */
-
 .dashboard-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -225,8 +213,6 @@
   border-radius: var(--radius);
   background: var(--card);
 }
-
-/* Placeholder (coming soon) empty-state */
 
 .placeholder-empty {
   display: flex;

@@ -18,7 +18,6 @@ import {
   formatPeso,
 } from "@/backend/wrapmate-store";
 
-/* Theme-aware chart colors (read from CSS vars, re-read on theme toggle). */
 type ChartColors = {
   chart1: string;
   chart2: string;
@@ -58,7 +57,6 @@ function useChartColors(): ChartColors {
 export default function Analytics() {
   const colors = useChartColors();
 
-  // Real analytics data from COMPLETED orders.
   const summary = getIncomeSummary();
   const incomePerProduct = getIncomePerProduct();
   const wrapUsage = getWrapUsagePerProduct();
@@ -85,7 +83,6 @@ export default function Analytics() {
         </div>
       </div>
 
-      {/* Income summary cards */}
       <section className="dashboard-stats">
         <div className="dashboard-stat-card">
           <div className="dashboard-stat-icon">
@@ -121,7 +118,6 @@ export default function Analytics() {
         </div>
       </section>
 
-      {/* Bubble wrap summary cards */}
       <section className="dashboard-stats">
         <div className="dashboard-stat-card">
           <div className="dashboard-stat-icon">
@@ -146,7 +142,6 @@ export default function Analytics() {
         </div>
       </section>
 
-      {/* Income per product */}
       <section className="dashboard-section">
         <div className="dashboard-panel">
           <div className="dashboard-panel-header">
@@ -226,7 +221,6 @@ export default function Analytics() {
         </div>
       </section>
 
-      {/* Bubble Wrap Used — total length used per product */}
       <section className="dashboard-section">
         <div className="dashboard-panel">
           <div className="dashboard-panel-header">
@@ -293,7 +287,6 @@ export default function Analytics() {
         </div>
       </section>
 
-      {/* Avg. Wrap Length — average wrap length per order per product */}
       <section className="dashboard-section">
         <div className="dashboard-panel">
           <div className="dashboard-panel-header">

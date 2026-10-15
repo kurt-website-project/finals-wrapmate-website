@@ -21,7 +21,6 @@ import {
 } from "recharts";
 import { getOrders, getWrapUsagePerProduct } from "@/backend/wrapmate-store";
 
-/* Theme-aware chart colors (read from CSS vars, re-read on theme toggle). */
 type ChartColors = {
   chart1: string;
   chart2: string;
@@ -71,7 +70,6 @@ export default function Dashboard() {
     fontSize: "0.8rem",
   };
 
-  // --- Real data derived from the shared Orders store ---
   const orders = getOrders();
   const totalOrders = orders.length;
 
@@ -93,7 +91,6 @@ export default function Dashboard() {
     avgWrapLengthCm,
   };
 
-  // Recent activity from the latest orders (most recent first).
   const recentActivity = [...orders]
     .slice(-3)
     .reverse()
@@ -117,7 +114,6 @@ export default function Dashboard() {
 
   return (
     <div className="wrapmate-dashboard">
-      {/* Welcome Section */}
       <section className="dashboard-welcome">
         <div>
           <p className="dashboard-eyebrow">WrapMate Dashboard</p>
@@ -126,7 +122,6 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* Statistics */}
       <section className="dashboard-stats">
         <div className="dashboard-stat-card">
           <div className="dashboard-stat-icon">
@@ -162,7 +157,6 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* Bubble wrap chart — total used + average per product */}
       <section className="dashboard-section">
         <div className="dashboard-panel">
           <div className="dashboard-panel-header">
@@ -241,7 +235,6 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* Recent Activity */}
       <section className="dashboard-section">
         <div className="dashboard-section-heading dashboard-activity-heading">
           <div>

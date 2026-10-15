@@ -56,9 +56,6 @@ export function Sidebar() {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Header                                                              */
-/* ------------------------------------------------------------------ */
 
 function SidebarHeader() {
   return (
@@ -85,9 +82,6 @@ function SidebarHeader() {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Footer                                                              */
-/* ------------------------------------------------------------------ */
 
 type FooterIdentity = {
   username?: string;
@@ -113,8 +107,6 @@ function SidebarFooter() {
   const { data: identity, refetch } = useGetIdentity<FooterIdentity>();
   const { mutate: logout } = useLogout();
 
-  // Re-read the identity when the profile changes on the Settings page so the
-  // name/avatar in the footer update immediately (no page reload).
   React.useEffect(() => {
     const handler = () => refetch?.();
     window.addEventListener(IDENTITY_UPDATED_EVENT, handler);
@@ -137,7 +129,6 @@ function SidebarFooter() {
         "p-3"
       )}
     >
-      {/* User row: avatar + name/role (left) + theme toggle (far right) */}
       <div className={cn("flex", "items-center", "gap-2.5")}>
         <Avatar className={cn("h-9", "w-9", "shrink-0")}>
           {avatar && <AvatarImage src={avatar} alt={displayName} />}
@@ -169,7 +160,6 @@ function SidebarFooter() {
         <ThemeToggle className={cn("h-9", "w-9", "shrink-0")} />
       </div>
 
-      {/* Actions row: Settings (left) + logout (right) */}
       <div className={cn("flex", "items-center", "justify-between", "gap-2")}>
         <Button
           asChild
@@ -218,9 +208,6 @@ function SidebarFooter() {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Nav items                                                           */
-/* ------------------------------------------------------------------ */
 
 type MenuItemProps = {
   item: TreeMenuItem;
